@@ -100,7 +100,7 @@ all: AudioLoopback.dxe
 AudioLoopback.dxe: $(LDF_SRCS) $(SRC_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: CrossCore Blackfin Linker'
-	ccblkfn.exe -proc ADSP-BF537 -si-revision any -TE:/ander/Desktop/Clase/POPBL5/WS_EJEMPLO/AudioLoopback/system/startup_ldf/app.ldf -no-mem -LE:/ander/Desktop/Clase/POPBL5/WS_EJEMPLO/AudioLoopback/Debug/system/startup_ldf -flags-link -MDDEBUG -flags-link -e -add-debug-libpaths -o AudioLoopback.dxe $(SRC_OBJS) $(LDF_SRCS)  -flags-link -od,.\.
+	ccblkfn.exe -proc ADSP-BF537 -si-revision any -TE:/ander/Desktop/Clase/POPBL5/haip_controller/src/AudioLoopback/system/startup_ldf/app.ldf -no-mem -LE:/ander/Desktop/Clase/POPBL5/haip_controller/src/AudioLoopback/Debug/system/startup_ldf -flags-link -MDDEBUG -flags-link -e -add-debug-libpaths -o AudioLoopback.dxe $(SRC_OBJS) $(LDF_SRCS)  -flags-link -od,.\.
 	@echo 'Finished building target: $@'
 	@echo ' '
 

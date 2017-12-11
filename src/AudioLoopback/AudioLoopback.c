@@ -27,6 +27,7 @@ to the terms of the associated Analog Devices License Agreement.
 #include <filter.h>
 #include <fract2float_conv.h>
 #include "declaraciones.h"
+#include "HaipTxRx.h"
 //#include "filter1_fr16_lp.h"
 
 #include "funciones.h"
@@ -277,96 +278,25 @@ void main (void)
 
         {
 
-/* IF (Non-Blocking mode) */
-#if !defined (ENABLE_CALLBACK)
-
-			//UART
-        	if(!enviar){
-        		comprobarEntradaUART();
-        	}
-
-		    //
-
-			//ADC
-			comprobarEntradaADC();
-			comprobarEntradaDAC();
-
-			//
-
-
-			/*erantzunaTx=adi_uart_IsTxBufferAvailable (hDevice, &enviar);
-
-			if(enviar){
-				eResult=adi_uart_GetTxBuffer (hDevice, &trama_salida_demod);
-				erantzunaTx=adi_uart_SubmitRxBuffer (hDevice, UBufferJaso, BUFFER_SIZE);
-			}
-
-        	}*/
-
-
-#endif /* ENABLE_CALLBACK not defined */
-
-			obtenerEntradaADC();
-			salirPorDAC();
-
-			/*
-            // IF (Valid ADC and DAC buffer available)
-            if ((pAdcBuf != NULL) && (pDacBuf != NULL))
-            {
-                // Copy ADC data buffer content to DAC buffer
-                ptr_int32 = (unsigned int *) pAdcBuf;
-
-				 // Copy left and right to guardado arrays
-				for(k=0;k<BUFFER_SIZE_CONV/4;k+=2)
-				{
-					guardado1[k/2]=((ptr_int32[k]<<8));//derecha (sycnh)
-					guardado2[k/2]=((ptr_int32[k+1]<<8));//izquierda (data)
-					//guardado1[k/2]= 0;//derecha (sycnh)
-					//guardado2[k/2]=((ptr_int32[k+1]<<8));//izquierda (data)
-					salida1[k/2] = guardado1[k/2];
-					salida2[k/2]=guardado2[k/2];
-				}
-
-				ptr_int32 = (unsigned int *) pDacBuf;
-
-				// Copy left and right to guardado arrays
-				for(k=0;k<BUFFER_SIZE_CONV/4;k+=2)
-				{
-					ptr_int32[k]=((int) salida1[k/2])>>8;
-					ptr_int32[k+1]=((int) salida2[k/2])>>8;
-				}
-
-				if (contador_tramas==100)
-				{
-					contador_tramas++;
-				}
-				contador_tramas++;
-
-
-                // Re-submit ADC buffer
-                Result = adi_ad1871_SubmitRxBuffer(hAd1871Adc, pAdcBuf, BUFFER_SIZE_CONV);
-
-                // IF (Failure)
-                if(Result)
-                {
-                    DEBUG_MSG2("Failed to submit buffer to AD1871", Result);
-                    break;
-                }
-
-                // Re-submit DAC buffer
-                Result = adi_ad1854_SubmitTxBuffer(hAd1854Dac, pDacBuf, BUFFER_SIZE_CONV);
-
-                // IF (Failure)
-                if(Result)
-                {
-                    DEBUG_MSG2("Failed to submit buffer to AD1854", Result);
-                    break;
-                }
-
-                // Clear the buffer pointers
-                pAdcBuf = NULL;
-                pDacBuf = NULL;
-            }*/
+        	haiptxrx_iterate();
+//
+///* IF (Non-Blocking mode) */
+//#if !defined (ENABLE_CALLBACK)
+//
+//			//UART
+//        	if(!enviar){
+//        		comprobarEntradaUART();
+//        	}
+//
+//			//ADC
+//			comprobarEntradaADC();
+//			comprobarEntradaDAC();
+//
+//
+//#endif /* ENABLE_CALLBACK not defined */
+//
+//			obtenerEntradaADC();
+//			salirPorDAC();
         }
     }
 
