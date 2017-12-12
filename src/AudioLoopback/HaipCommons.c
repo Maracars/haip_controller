@@ -6,9 +6,10 @@
  */
 #include "HaipCommons.h"
 #include <time.h>
+#include <stdio.h>
 
 bool check_timeout(double last, double limit, double* new_last) {
-	double instant;
+	int instant;
 	instant = clock() / CLOCKS_PER_SEC;
 	bool tempBool = (instant - last) <= limit;
 	*new_last = instant;
@@ -19,7 +20,7 @@ int char_to_dec(char c, int bits_p_symbol) {
 	int ret_dec = 0;
 	int i;
 	for (i = 0; i < bits_p_symbol; i++) {
-		ret_dec = ret_dec + pow(2, i) * c & pow(2, i);
+		ret_dec = ret_dec + c & pow(2, i);
 	}
 	return ret_dec;
 }

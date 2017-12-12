@@ -8,6 +8,17 @@
 #ifndef HAIPCOMMONS_H_
 #define HAIPCOMMONS_H_
 
+#include <blackfin.h>
+#include <stdio.h>
+#include <services\int\adi_int.h>
+#include <drivers\uart\adi_uart.h>
+#include <services\pwr\adi_pwr.h>
+#include "system/adi_initialize.h"
+/* AD1854 driver includes */
+#include <drivers/dac/ad1854/adi_ad1854.h>
+/* AD1871 driver includes */
+#include <drivers/adc/ad1871/adi_ad1871.h>
+
 //DEFINITIONS
 
 #define UART_BUFFER_SIZE 50
@@ -30,6 +41,6 @@ typedef struct haip_sync_params {
 
 //Function declarations
 
-bool check_timeout(unsigned long last, unsigned long limit, unsigned long* new_last);
+bool check_timeout(double last, double limit, double* new_last);
 int char_to_dec(char c, int bits_p_symbol);
 #endif /* HAIPCOMMONS_H_ */

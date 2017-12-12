@@ -23,17 +23,17 @@ char frame_buffer[FRAME_BUFFER_SIZE][HAIP_FRAME_LENGTH_MAX];
 int frame_count = 0;
 
 //Declarations
-void has_tx_frame_ready(void);
-void has_rx_frame_ready(void);
+bool has_tx_frame_ready(void);
+bool has_rx_frame_ready(void);
 void output_analog(void);
 void output_digital(void);
 void read_analog_input(void);
 void read_digital_input(void);
 void process_digital_input(char* buffer, int size);
-int get_next_frame_legth(char* buffer);
+int get_next_frame_legth(char* buffer, int* flen);
 bool dac_is_free(void);
 int get_frames(char* buffer, char** frames, int curr_len);
-void send_dac(fract32* output_buffer);
+void send_dac(fract32* output_buffer, bool do_send);
 
 //GLOBAL FUNCTIONS
 
@@ -148,5 +148,13 @@ void send_dac(fract32* output_buffer, bool do_send) {
 			fr32_buffer[i] = 0;
 		}
 	}
-	adi_ad1854_SubmitTxBuffer(dac_device, buffer, AUDIO_BUFFER_SIZE)
+	adi_ad1854_SubmitTxBuffer(dac_device, buffer, AUDIO_BUFFER_SIZE);
 }
+
+bool has_rx_frame_ready(void){
+	return 0;
+}
+void output_digital(void){
+}
+
+

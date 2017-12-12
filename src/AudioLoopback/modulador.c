@@ -17,7 +17,7 @@
 #include "HaipModulator.h"
 #include "HaipCommons.h"
 
-void mapeador(void);
+void mapeador(char* frame_buffer);
 void muestreo(void);
 void filtro(void);
 void oscilador(void);

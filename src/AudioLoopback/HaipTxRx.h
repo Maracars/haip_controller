@@ -8,6 +8,7 @@
 #ifndef HAIPTXRX_H_
 #define HAIPTXRX_H_
 
+#include "HaipCommons.h"
 //GLOBAL VARIABLES
 
 extern ADI_UART_HANDLE uart_device;
