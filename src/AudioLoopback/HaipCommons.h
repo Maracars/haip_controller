@@ -31,5 +31,5 @@ typedef struct haip_sync_params {
 //Function declarations
 
 bool check_timeout(unsigned long last, unsigned long limit, unsigned long* new_last);
-
+int char_to_dec(char c, int bits_p_symbol);
 #endif /* HAIPCOMMONS_H_ */

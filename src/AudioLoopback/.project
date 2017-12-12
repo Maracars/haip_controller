@@ -110,7 +110,7 @@
 		</variable>
 		<variable>
 			<name>COM_ANALOG_CROSSCORE_ADDINS_BF537_EZKIT_LITE_1_0_0_LOC</name>
-			<value>file:/E:/Analog%20Devices/ADSP-BF537_EZKIT-Rel1.0.0/BF537_EZ-KIT_Lite</value>
+			<value>file:/C:/Analog%20Devices/ADSP-BF537_EZKIT-Rel1.0.0/BF537_EZ-KIT_Lite</value>
 		</variable>
 	</variableList>
 </projectDescription>

@@ -1,8 +1,8 @@
 /*
-** ADSP-BF537 startup code generated on Nov 05, 2013 at 12:24:08.
+** ADSP-BF537 startup code generated on Dec 11, 2017 at 12:23:01.
 */
 /*
-** Copyright (C) 2000-2013 Analog Devices Inc., All Rights Reserved.
+** Copyright (C) 2000-2015 Analog Devices Inc., All Rights Reserved.
 **
 ** This file is generated automatically based upon the options selected
 ** in the System Configuration utility. Changes to the Startup Code configuration
@@ -14,8 +14,8 @@
 ** these are bounded by comments that start with "$VDSG". Only changes
 ** placed within these sections are preserved when this file is re-generated.
 **
-** Product      : CrossCore Embedded Studio 1.0.2.0
-** Tool Version : 6.0.2.32
+** Product      : CrossCore Embedded Studio
+** Tool Version : 6.0.4.0
 */
 
 #include <sys/platform.h>
@@ -24,9 +24,11 @@
 #include <sys/fatal_error_code.h>
 #include <sys/exception.h>
 
+#define LOADIMM32REG(R,VAL) R ## .L = LO(VAL); R ## .H = HI(VAL);
+
 #define INTERRUPT_BITS (EVT_IVG15)
 
-#define UNASSIGNED_VAL 0x8181
+#define UNASSIGNED_VAL 0x81818181
 
 // The requiredForROMBoot file attribute is included here as this source
 // defines code and data that are used before, or as part of, the meminit
@@ -57,16 +59,14 @@ start:
       CALL.X __disable_cplbs;
 
       // Set registers to unassigned value.
-      R0.L = UNASSIGNED_VAL;
-      R0.H = UNASSIGNED_VAL;
+      LOADIMM32REG(R0, UNASSIGNED_VAL)
 
       // Initialize the stack.
       // Note: this points just past the end of the stack memory.
       // So the first write must be with [--SP].
       .EXTERN ldf_stack_end;
       .TYPE ldf_stack_end,STT_OBJECT;
-      SP.L = LO(ldf_stack_end);
-      SP.H = HI(ldf_stack_end);
+      LOADIMM32REG(SP, ldf_stack_end)
       USP = SP;
 
       // Push UNASSIGNED_VAL as RETS and old FP onto the stack to terminate
@@ -99,39 +99,33 @@ start:
       // Zero the ITEST_COMMAND and DTEST_COMMAND registers
       // (in case they have unintialized values in them that
       // cause a write somewhere when we enable cache).
-      I0.L = LO(ITEST_COMMAND);
-      I0.H = HI(ITEST_COMMAND);
-      I1.L = LO(DTEST_COMMAND);
-      I1.H = HI(DTEST_COMMAND);
+      LOADIMM32REG(I0, ITEST_COMMAND)
+      LOADIMM32REG(I1, DTEST_COMMAND)
       [I0] = R7;
       [I1] = R7;
       CSYNC;
 
       // Initialize the Event Vector Table (EVT) entries other than
       // EVT0 (Emulation) and EVT1 (Reset).
-      P0.L = LO(EVT2);
-      P0.H = HI(EVT2);
+      LOADIMM32REG(P0, EVT2)
 
       // Set EVT2 (NMI) handler to our NMI interrupt dispatcher
       .EXTERN __nmi_int_dispatcher;
       .TYPE __nmi_int_dispatcher,STT_FUNC;
-      R1.L = LO(__nmi_int_dispatcher);
-      R1.H = HI(__nmi_int_dispatcher);
+      LOADIMM32REG(R1, __nmi_int_dispatcher)
       [P0++] = R1;          // write &nmi_int_dispatcher to EVT2.
 
       // Set IVG3's (EVX) handler to our exception dispatcher
       .EXTERN __exc_dispatcher;
       .TYPE __exc_dispatcher,STT_FUNC;
-      R1.L = LO(__exc_dispatcher);
-      R1.H = HI(__exc_dispatcher);
+      LOADIMM32REG(R1, __exc_dispatcher)
       [P0++] = R1;          // write &exc_dispatcher to EVT3.
 
       // Install cec_int_dispatcher into each EVT4-EVT14 slot so that all
       // core interrupts are handled by the dispatcher support.
       .EXTERN __cec_int_dispatcher;
       .TYPE __cec_int_dispatcher,STT_FUNC;
-      R1.L = LO(__cec_int_dispatcher);
-      R1.H = HI(__cec_int_dispatcher);
+      LOADIMM32REG(R1, __cec_int_dispatcher)
       P1 = 11;
       LSETUP (.ivt, .ivt) LC0 = P1;
 .ivt:  [P0++] = R1;
@@ -141,27 +135,24 @@ start:
       // mode, we'll raise IVG15. This will mean we stay in supervisor
       // mode, and continue from the mode-change point at the
       // lowest priority.
-      P1.L = LO(supervisor_mode);
-      P1.H = HI(supervisor_mode);
+      LOADIMM32REG(P1, supervisor_mode)
       [P0] = P1;
 
       // Configure SYSCFG.
       R1 = SYSCFG;
-      .MESSAGE/SUPPRESS 1056;  // Suppress stall informational message
 
-      BITSET (R1, SYSCFG_CCEN_P);     // Enable the Cycle counter.
+      BITSET (R1, SYSCFG_CCEN_P);     // Enable the cycle counter.
 
-      .MESSAGE/RESTORE 1056;
       SYSCFG = R1;
 
       // __install_default_handlers is called to allow the opportunity
-      // to install event handlers before _main. The default version of this
+      // to install event handlers before main(). The default version of this
       // function provided in the libraries just returns the mask passed in.
       R0 = INTERRUPT_BITS (Z);
       .EXTERN __install_default_handlers;
       .TYPE __install_default_handlers,STT_FUNC;
       CALL.X __install_default_handlers;  // get the enable mask
-      R4 = R0;              // hold the modified mask preserved regiter R4
+      R4 = R0;              // hold the modified mask in preserved register R4
 
       // Initialize the jump target tables used by the interrupt dispatcher.
       .EXTERN __init_dispatch_tables;
@@ -190,12 +181,11 @@ start:
       RAISE 15;             // handled by supervisor_mode
 
       // Move the processor into user mode.
-      P0.L = LO(still_interrupt_in_ipend);
-      P0.H = HI(still_interrupt_in_ipend);
+      LOADIMM32REG(P0, still_interrupt_in_ipend)
       RETI = P0;
 
 still_interrupt_in_ipend:
-      // Execute RTI instructions until we've `finished` servicing 
+      // Execute RTI instructions until we've `finished` servicing
       // all interrupts of priority higher than IVG15. Normally one
       // would expect to only have the reset interrupt in IPEND
       // being serviced, but occasionally when debugging this may
@@ -223,7 +213,7 @@ supervisor_mode:
       // the overhead.
       //
       // There is no support provided for data access multiple CPLB hits (0x27)
-      // and Instruction fetch CPLB protection violation (0x2B). If these 
+      // and Instruction fetch CPLB protection violation (0x2B). If these
       // exception occurs they will be treated as an unhandled exception.
       //
       // The code below calls the underlying RTL support rather than OSAL to
@@ -233,28 +223,23 @@ supervisor_mode:
       .EXTERN _cplb_dhandler;
       .TYPE _cplb_dhandler,STT_FUNC;
       // 0x23 - Data access CPLB protection violation
-      R0.H = HI(ADI_EXC_DATA_PROT_VIOLATION);
-      R0.L = LO(ADI_EXC_DATA_PROT_VIOLATION);
-      R1.H = HI(_cplb_dhandler);
-      R1.L = LO(_cplb_dhandler);
+      LOADIMM32REG(R0, ADI_EXC_DATA_PROT_VIOLATION)
+      LOADIMM32REG(R1, _cplb_dhandler)
       R2 = CPLB_EVT_DCPLB_WRITE;
       R5 = R1;
       CALL.X _adi_rtl_register_dispatched_handler;
       // 0x26 - Data access CPLB miss
-      R0.H = HI(ADI_EXC_DATA_CPLB_MISS);
-      R0.L = LO(ADI_EXC_DATA_CPLB_MISS);
+      LOADIMM32REG(R0, ADI_EXC_DATA_CPLB_MISS)
       R1 = R5;
       R2 = CPLB_EVT_DCPLB_MISS;
       CALL.X _adi_rtl_register_dispatched_handler;
       // 0x2C - Instruction fetch CPLB miss
-      R0.H = HI(ADI_EXC_INSTR_CPLB_MISS);
-      R0.L = LO(ADI_EXC_INSTR_CPLB_MISS);
+      LOADIMM32REG(R0, ADI_EXC_INSTR_CPLB_MISS)
       R1 = R5;
       R2 = CPLB_EVT_ICPLB_MISS;
       CALL.X _adi_rtl_register_dispatched_handler;
       // 0x2D - Instruction fetch multiple CPLB hits
-      R0.H = HI(ADI_EXC_INSTR_CPLB_MULTI_HIT);
-      R0.L = LO(ADI_EXC_INSTR_CPLB_MULTI_HIT);
+      LOADIMM32REG(R0, ADI_EXC_INSTR_CPLB_MULTI_HIT)
       R1 = R5;
       R2 = CPLB_EVT_ICPLB_DOUBLE_HIT;
       CALL.X _adi_rtl_register_dispatched_handler;
@@ -314,7 +299,7 @@ supervisor_mode:
       // Call the standard C exit function, passing main's return value.
       .EXTERN _exit;
       .TYPE _exit,STT_FUNC;
-      CALL.X _exit;         // doesn't return 
+      CALL.X _exit;         // doesn't return
 
       // The call to _adi_osal_Init returned an error so call adi_fatal_error.
       .EXTERN _adi_fatal_error;

@@ -1,8 +1,8 @@
 /*
-** ADSP-BF537 linker description file generated on Nov 05, 2013 at 12:24:10.
+** ADSP-BF537 linker description file generated on Dec 11, 2017 at 12:23:04.
 */
 /*
-** Copyright (C) 2000-2013 Analog Devices Inc., All Rights Reserved.
+** Copyright (C) 2000-2015 Analog Devices Inc., All Rights Reserved.
 **
 ** This file is generated automatically based upon the options selected
 ** in the System Configuration utility. Changes to the LDF configuration
@@ -14,8 +14,8 @@
 ** these are bounded by comments that start with "$VDSG". Only changes
 ** placed within these sections are preserved when this file is re-generated.
 **
-** Product      : CrossCore Embedded Studio 1.0.2.0
-** Tool Version : 6.0.2.32
+** Product      : CrossCore Embedded Studio
+** Tool Version : 6.0.4.0
 */
 
 ARCHITECTURE(ADSP-BF537)
@@ -58,6 +58,7 @@ $LIBRARIES =
    ,libetsi.dlb
    ,libssl.dlb
    ,libdrv.dlb
+   ,libdyn.dlb
    ,libsmall.dlb
    ,libevent.dlb
    ,libprofile.dlb
@@ -188,7 +189,6 @@ MEMORY
    MEM_L1_CODE             { TYPE(RAM) START(0xFFA00000) END(0xFFA0BFFF) WIDTH(8) }
    MEM_L1_DATA_B           { TYPE(RAM) START(0xFF900000) END(0xFF907FFF) WIDTH(8) }
    MEM_L1_DATA_A           { TYPE(RAM) START(0xFF800000) END(0xFF807FFF) WIDTH(8) }
-   SD_RAM		           { TYPE(RAM) START(0x00000000) END(0x03FFFFFF) WIDTH(8) }
 
    /*
    ** ADSP-BF537 EZ-KIT Lite connects to a 4 MB (2M x 16-bits) ST Micro
@@ -547,14 +547,6 @@ PROCESSOR p0
       /*$VDSG<insert-new-sections-at-the-end>                   */
       /* Text inserted between these $VDSG comments will be preserved */
       /*$VDSG<insert-new-sections-at-the-end>                   */
-
-      sdram0
-      {
-         INPUT_SECTION_ALIGN(4)
-         
-			INPUT_SECTIONS($OBJS_LIBS(sdram0))      
-			} > SD_RAM
-
       
    } /* SECTIONS */
 } /* p0 */

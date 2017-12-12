@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?>
-
-<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="blackfin.toolchain.configuration.debug.1227652869">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="blackfin.toolchain.configuration.debug.1227652869" moduleId="org.eclipse.cdt.core.settings" name="Debug">
@@ -10,9 +8,9 @@
 				</macros>
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="com.analog.crosscore.managedbuilder.core.errorparser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -27,6 +25,7 @@
 								<option id="assembler.option.sirevision.57161439" name="-si-revision" superClass="assembler.option.sirevision" value=" any" valueType="string"/>
 								<option id="assembler.option.preprocessdefs.1214164356" name="Preprocessor definitions (-D):" superClass="assembler.option.preprocessdefs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="_DEBUG"/>
+									<listOptionValue builtIn="false" value="CORE0"/>
 								</option>
 								<option id="assembler.option.additionaldirectories.1344960832" name="Additional include directories (-I):" superClass="assembler.option.additionaldirectories" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/system}&quot;"/>
@@ -41,6 +40,7 @@
 								<option id="compiler.option.sirevision.1199451651" name="-si-revision" superClass="compiler.option.sirevision" value=" any" valueType="string"/>
 								<option id="compiler.option.preprocessdefs.1022049994" name="Preprocessor definitions (-D):" superClass="compiler.option.preprocessdefs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="_DEBUG"/>
+									<listOptionValue builtIn="false" value="CORE0"/>
 								</option>
 								<option id="compiler.option.additionaldirectories.46872114" name="Additional include directories (-I):" superClass="compiler.option.additionaldirectories" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/system}&quot;"/>
@@ -49,6 +49,7 @@
 								</option>
 								<option id="blackfin.compiler.option.cplbenable.20257643" name="CPLBs are enabled (-cplbs)" superClass="blackfin.compiler.option.cplbenable" value="true" valueType="boolean"/>
 								<option id="blackfin.compiler.option.sdram0inuse.992018185" name="SDRAM Bank 0 is in use (-sdram)" superClass="blackfin.compiler.option.sdram0inuse" value="true" valueType="boolean"/>
+								<option id="compiler.option.coreid.1198543972" superClass="compiler.option.coreid" value="0" valueType="string"/>
 								<inputType id="compiler.inputType.1756326372" name="C/C++ Source" superClass="compiler.inputType"/>
 							</tool>
 							<tool id="blackfin.toolchain.linker.718771944" name="CrossCore Blackfin Linker" superClass="blackfin.toolchain.linker">
@@ -59,6 +60,7 @@
 								<option id="linker.option.sirevision.1294834737" name="-si-revision" superClass="linker.option.sirevision" value=" any" valueType="string"/>
 								<option id="linker.option.preprocessdefs.95352491" name="Preprocessor definitions (-MD)" superClass="linker.option.preprocessdefs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG"/>
+									<listOptionValue builtIn="false" value="CORE0"/>
 								</option>
 								<option id="linker.option.ldfprocessing.ldffile.1128558964" name="Custom LDF (-T)" superClass="linker.option.ldfprocessing.ldffile" value="&quot;${ProjDirPath}/system/startup_ldf/app.ldf&quot;" valueType="string"/>
 								<option id="linker.option.srchdir.586817039" name="Library search directories (-L):" superClass="linker.option.srchdir" valueType="libPaths">
@@ -91,9 +93,9 @@
 				</macros>
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="com.analog.crosscore.managedbuilder.core.errorparser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -108,6 +110,7 @@
 								<option id="assembler.option.sirevision.1218676505" name="-si-revision" superClass="assembler.option.sirevision" value=" any" valueType="string"/>
 								<option id="assembler.option.preprocessdefs.599310519" name="Preprocessor definitions (-D):" superClass="assembler.option.preprocessdefs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG"/>
+									<listOptionValue builtIn="false" value="CORE0"/>
 								</option>
 								<option id="assembler.option.additionaldirectories.970882008" name="Additional include directories (-I):" superClass="assembler.option.additionaldirectories" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/system}&quot;"/>
@@ -122,12 +125,14 @@
 								<option id="compiler.option.sirevision.1722876526" name="-si-revision" superClass="compiler.option.sirevision" value=" any" valueType="string"/>
 								<option id="compiler.option.preprocessdefs.2027481528" name="Preprocessor definitions (-D):" superClass="compiler.option.preprocessdefs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG"/>
+									<listOptionValue builtIn="false" value="CORE0"/>
 								</option>
 								<option id="compiler.option.additionaldirectories.463028500" name="Additional include directories (-I):" superClass="compiler.option.additionaldirectories" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/system}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${COM_ANALOG_CROSSCORE_ADDINS_BF537_EZKIT_LITE_1_0_0_LOC}/Blackfin/include&quot;"/>
 								</option>
 								<option id="blackfin.compiler.option.cplbenable.1596039599" name="CPLBs are enabled (-cplbs)" superClass="blackfin.compiler.option.cplbenable" value="true" valueType="boolean"/>
+								<option id="compiler.option.coreid.327728921" superClass="compiler.option.coreid" value="0" valueType="string"/>
 								<inputType id="compiler.inputType.271466934" name="C/C++ Source" superClass="compiler.inputType"/>
 							</tool>
 							<tool id="blackfin.toolchain.linker.1138072665" name="CrossCore Blackfin Linker" superClass="blackfin.toolchain.linker">
@@ -138,6 +143,7 @@
 								<option id="linker.option.sirevision.1235676825" name="-si-revision" superClass="linker.option.sirevision" value=" any" valueType="string"/>
 								<option id="linker.option.preprocessdefs.1279938767" name="Preprocessor definitions (-MD)" superClass="linker.option.preprocessdefs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="RELEASE"/>
+									<listOptionValue builtIn="false" value="CORE0"/>
 								</option>
 								<option id="linker.option.ldfprocessing.ldffile.2089548646" name="Custom LDF (-T)" superClass="linker.option.ldfprocessing.ldffile" value="&quot;${ProjDirPath}/system/startup_ldf/app.ldf&quot;" valueType="string"/>
 								<option id="linker.option.srchdir.291061673" name="Library search directories (-L):" superClass="linker.option.srchdir" valueType="libPaths">
@@ -197,4 +203,5 @@
 		</project-mappings>
 	</storageModule>
 	<storageModule moduleId="refreshScope"/>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 </cproject>

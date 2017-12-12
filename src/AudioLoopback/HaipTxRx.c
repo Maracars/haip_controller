@@ -6,6 +6,7 @@
  */
 #include "HaipTxRx.h"
 #include "HaipCommons.h"
+#include "declaraciones.h"
 
 //definitions
 
@@ -139,7 +140,7 @@ void send_dac(fract32* output_buffer, bool do_send) {
 	result = adi_ad1854_GetTxBuffer(dac_device, &buffer);
 	fract32* fr32_buffer = (fract32*) buffer;
 	if(do_send){
-		memcpy(fr32_buffer, output_buffer, DAC_BUFFER_SIZE);
+		memcpy(fr32_buffer, entrada_dac, DAC_BUFFER_SIZE);
 	}
 	else{
 		int i;

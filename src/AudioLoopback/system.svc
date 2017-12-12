@@ -25,8 +25,8 @@ It provides information needed to link your code. It can be used to configure me
 			<startup_ldf-configuration>
 				<crt_and_ldf>
 					<propertygroup name="template_schemas" value="true">
-						<property name="ldf_schema" value="5.12"/>
-						<property name="startup_code_schema" value="6.2"/>
+						<property name="ldf_schema" value="5.14"/>
+						<property name="startup_code_schema" value="21.02"/>
 					</propertygroup>
 					<propertygroup name="mandatory">
 						<property name="si_revision" value="any"/>
@@ -45,7 +45,7 @@ It provides information needed to link your code. It can be used to configure me
 						</propertygroup>
 						<propertygroup name="mem_init" value="false"/>
 						<propertygroup name="use_multicores" value="1">
-							<property name="use_core" value="coreA"/>
+							<property name="use_core" value="0"/>
 						</propertygroup>
 						<propertygroup name="int_handlers" value="96">
 							<property name="int_handler_table_mem" value="L1"/>
@@ -67,10 +67,15 @@ It provides information needed to link your code. It can be used to configure me
 						<property name="icache_config" value="enable_icache"/>
 					</crt>
 					<ldf>
-						<propertygroup name="use_sdram" value="false"/>
+						<propertygroup name="use_sdram" value="false">
+							<property name="partitioned" value="default"/>
+							<property name="size" value="64"/>
+							<property name="dmc_size_0" value="64"/>
+							<property name="size_units" value="MB"/>
+						</propertygroup>
 						<propertygroup name="system_heap" value="L1">
-							<property name="min_size" value="2"/>
 							<property name="size_units" value="kB"/>
+							<property name="min_size" value="2"/>
 							<property name="customized" value="false"/>
 						</propertygroup>
 						<propertygroup name="system_stack" value="L1">
@@ -87,8 +92,8 @@ It provides information needed to link your code. It can be used to configure me
 							<property name="use_utility_rom" value="false"/>
 						</propertygroup>
 						<property name="use_eh" value="true"/>
-						<property name="user_heap_src_file" value="app_heaptab.c"/>
 						<property name="use_full_cpplib" value="false"/>
+						<property name="user_heap_src_file" value="app_heaptab.c"/>
 						<property name="use_software_modules" value="false"/>
 						<property name="use_user_mod_ldf" value="true"/>
 						<property name="use_pgo_hw" value="false"/>
