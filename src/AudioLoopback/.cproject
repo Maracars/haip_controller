@@ -25,7 +25,6 @@
 								<option id="assembler.option.sirevision.57161439" name="-si-revision" superClass="assembler.option.sirevision" value=" any" valueType="string"/>
 								<option id="assembler.option.preprocessdefs.1214164356" name="Preprocessor definitions (-D):" superClass="assembler.option.preprocessdefs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="_DEBUG"/>
-									<listOptionValue builtIn="false" value="CORE0"/>
 								</option>
 								<option id="assembler.option.additionaldirectories.1344960832" name="Additional include directories (-I):" superClass="assembler.option.additionaldirectories" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/system}&quot;"/>
@@ -40,7 +39,6 @@
 								<option id="compiler.option.sirevision.1199451651" name="-si-revision" superClass="compiler.option.sirevision" value=" any" valueType="string"/>
 								<option id="compiler.option.preprocessdefs.1022049994" name="Preprocessor definitions (-D):" superClass="compiler.option.preprocessdefs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="_DEBUG"/>
-									<listOptionValue builtIn="false" value="CORE0"/>
 								</option>
 								<option id="compiler.option.additionaldirectories.46872114" name="Additional include directories (-I):" superClass="compiler.option.additionaldirectories" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/system}&quot;"/>
@@ -49,23 +47,23 @@
 								</option>
 								<option id="blackfin.compiler.option.cplbenable.20257643" name="CPLBs are enabled (-cplbs)" superClass="blackfin.compiler.option.cplbenable" value="true" valueType="boolean"/>
 								<option id="blackfin.compiler.option.sdram0inuse.992018185" name="SDRAM Bank 0 is in use (-sdram)" superClass="blackfin.compiler.option.sdram0inuse" value="true" valueType="boolean"/>
-								<option id="compiler.option.coreid.1198543972" superClass="compiler.option.coreid" value="0" valueType="string"/>
 								<inputType id="compiler.inputType.1756326372" name="C/C++ Source" superClass="compiler.inputType"/>
 							</tool>
 							<tool id="blackfin.toolchain.linker.718771944" name="CrossCore Blackfin Linker" superClass="blackfin.toolchain.linker">
 								<option id="linker.option.individmap.1904381963" name="Individually map functions and data items (-ip)" superClass="linker.option.individmap" value="false" valueType="boolean"/>
 								<option id="linker.option.eliminateunused.243518679" name="Eliminate unused objects (-e)" superClass="linker.option.eliminateunused" value="true" valueType="boolean"/>
-								<option id="linker.option.usedbglib.1132326033" name="Use Debug System libraries (-add-debug-libpaths)" superClass="linker.option.usedbglib"/>
+								<option id="linker.option.usedbglib.1132326033" name="Use Debug System libraries (-add-debug-libpaths)" superClass="linker.option.usedbglib" value="false" valueType="boolean"/>
 								<option id="linker.option.proc.1103667509" name="-proc" superClass="linker.option.proc" value=" ADSP-BF537" valueType="string"/>
 								<option id="linker.option.sirevision.1294834737" name="-si-revision" superClass="linker.option.sirevision" value=" any" valueType="string"/>
 								<option id="linker.option.preprocessdefs.95352491" name="Preprocessor definitions (-MD)" superClass="linker.option.preprocessdefs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG"/>
-									<listOptionValue builtIn="false" value="CORE0"/>
 								</option>
 								<option id="linker.option.ldfprocessing.ldffile.1128558964" name="Custom LDF (-T)" superClass="linker.option.ldfprocessing.ldffile" value="&quot;${ProjDirPath}/system/startup_ldf/app.ldf&quot;" valueType="string"/>
 								<option id="linker.option.srchdir.586817039" name="Library search directories (-L):" superClass="linker.option.srchdir" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${OutDir}/system/startup_ldf&quot;"/>
 								</option>
+								<option id="blackfin.linker.option.memusage.74585510" name="Memory Usage" superClass="blackfin.linker.option.memusage" value="blackfin.linker.option.memusage.enumerated.sramcache" valueType="enumerated"/>
+								<option id="linker.option.misrachecksrcfiles.519213865" name="-misra-no-cross-module" superClass="linker.option.misrachecksrcfiles" value="true" valueType="boolean"/>
 								<inputType id="linker.doj.input.969255740" name="Object Files" superClass="linker.doj.input"/>
 							</tool>
 							<tool id="blackfin.toolchain.archiver.1600505961" name="CrossCore Blackfin Archiver" superClass="blackfin.toolchain.archiver">
@@ -110,7 +108,6 @@
 								<option id="assembler.option.sirevision.1218676505" name="-si-revision" superClass="assembler.option.sirevision" value=" any" valueType="string"/>
 								<option id="assembler.option.preprocessdefs.599310519" name="Preprocessor definitions (-D):" superClass="assembler.option.preprocessdefs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG"/>
-									<listOptionValue builtIn="false" value="CORE0"/>
 								</option>
 								<option id="assembler.option.additionaldirectories.970882008" name="Additional include directories (-I):" superClass="assembler.option.additionaldirectories" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/system}&quot;"/>
@@ -125,14 +122,12 @@
 								<option id="compiler.option.sirevision.1722876526" name="-si-revision" superClass="compiler.option.sirevision" value=" any" valueType="string"/>
 								<option id="compiler.option.preprocessdefs.2027481528" name="Preprocessor definitions (-D):" superClass="compiler.option.preprocessdefs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG"/>
-									<listOptionValue builtIn="false" value="CORE0"/>
 								</option>
 								<option id="compiler.option.additionaldirectories.463028500" name="Additional include directories (-I):" superClass="compiler.option.additionaldirectories" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/system}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${COM_ANALOG_CROSSCORE_ADDINS_BF537_EZKIT_LITE_1_0_0_LOC}/Blackfin/include&quot;"/>
 								</option>
 								<option id="blackfin.compiler.option.cplbenable.1596039599" name="CPLBs are enabled (-cplbs)" superClass="blackfin.compiler.option.cplbenable" value="true" valueType="boolean"/>
-								<option id="compiler.option.coreid.327728921" superClass="compiler.option.coreid" value="0" valueType="string"/>
 								<inputType id="compiler.inputType.271466934" name="C/C++ Source" superClass="compiler.inputType"/>
 							</tool>
 							<tool id="blackfin.toolchain.linker.1138072665" name="CrossCore Blackfin Linker" superClass="blackfin.toolchain.linker">
@@ -143,12 +138,12 @@
 								<option id="linker.option.sirevision.1235676825" name="-si-revision" superClass="linker.option.sirevision" value=" any" valueType="string"/>
 								<option id="linker.option.preprocessdefs.1279938767" name="Preprocessor definitions (-MD)" superClass="linker.option.preprocessdefs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="RELEASE"/>
-									<listOptionValue builtIn="false" value="CORE0"/>
 								</option>
 								<option id="linker.option.ldfprocessing.ldffile.2089548646" name="Custom LDF (-T)" superClass="linker.option.ldfprocessing.ldffile" value="&quot;${ProjDirPath}/system/startup_ldf/app.ldf&quot;" valueType="string"/>
 								<option id="linker.option.srchdir.291061673" name="Library search directories (-L):" superClass="linker.option.srchdir" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${OutDir}/system/startup_ldf&quot;"/>
 								</option>
+								<option id="linker.option.misrachecksrcfiles.1229147774" name="-misra-no-cross-module" superClass="linker.option.misrachecksrcfiles" value="true" valueType="boolean"/>
 								<inputType id="linker.doj.input.148245519" name="Object Files" superClass="linker.doj.input"/>
 							</tool>
 							<tool id="blackfin.toolchain.archiver.1852364738" name="CrossCore Blackfin Archiver" superClass="blackfin.toolchain.archiver">
@@ -173,27 +168,6 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="AudioLoopback.blackfin.projecttype.dxe.687459523" name="Blackfin Executable Project" projectType="blackfin.projecttype.dxe"/>
 	</storageModule>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="blackfin.toolchain.configuration.release.1016811460;blackfin.toolchain.configuration.release.1016811460.;blackfin.toolchain.compiler.1888574382;compiler.inputType.271466934">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.analog.crosscore.managedbuilder.core.CompilerDiscoveryProfile"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="blackfin.toolchain.configuration.release.1016811460;blackfin.toolchain.configuration.release.1016811460.;blackfin.toolchain.assembler.366152812;assembler.input.22533146">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.analog.crosscore.managedbuilder.core.AssemblerDiscoveryProfile"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="blackfin.toolchain.configuration.debug.1227652869;blackfin.toolchain.configuration.debug.1227652869.;blackfin.toolchain.linker.718771944;linker.doj.input.969255740">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.analog.crosscore.managedbuilder.core.LinkerDiscoveryProfile"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="blackfin.toolchain.configuration.release.1016811460;blackfin.toolchain.configuration.release.1016811460.;blackfin.toolchain.linker.1138072665;linker.doj.input.148245519">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.analog.crosscore.managedbuilder.core.LinkerDiscoveryProfile"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="blackfin.toolchain.configuration.debug.1227652869;blackfin.toolchain.configuration.debug.1227652869.;blackfin.toolchain.assembler.859857409;assembler.input.953283752">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.analog.crosscore.managedbuilder.core.AssemblerDiscoveryProfile"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="blackfin.toolchain.configuration.debug.1227652869;blackfin.toolchain.configuration.debug.1227652869.;blackfin.toolchain.compiler.1464744705;compiler.inputType.1756326372">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.analog.crosscore.managedbuilder.core.CompilerDiscoveryProfile"/>
-		</scannerConfigBuildInfo>
-	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.language.mapping">
 		<project-mappings>
 			<content-type-mapping configuration="" content-type="org.eclipse.cdt.core.cHeader" language="org.eclipse.cdt.core.c.adi.extension"/>
@@ -202,6 +176,16 @@
 			<content-type-mapping configuration="" content-type="org.eclipse.cdt.core.cxxSource" language="org.eclipse.cdt.core.c++.adi.extension"/>
 		</project-mappings>
 	</storageModule>
-	<storageModule moduleId="refreshScope"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Release">
+			<resource resourceType="PROJECT" workspacePath="/AudioLoopback"/>
+		</configuration>
+		<configuration configurationName="Debug">
+			<resource resourceType="PROJECT" workspacePath="/AudioLoopback"/>
+		</configuration>
+	</storageModule>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 </cproject>
