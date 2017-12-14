@@ -618,8 +618,6 @@ void initializations(){
 		CheckResult(eResult);
 
 		printf("Setup terminal on PC as described in Readme file. \n\n");
-		printf("Type characters in the terminal program and notice the characters being echoed.\n\n");
-		printf("Press the return key to stop the program.\n");
 
 		adi_uart_SubmitTxBuffer (hDevice, BufferTx1, BUFFER_SIZE);
 		adi_uart_SubmitRxBuffer (hDevice, BufferTx2, BUFFER_SIZE);

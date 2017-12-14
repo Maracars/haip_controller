@@ -30,11 +30,10 @@ static ADI_AD1871_HANDLE adc_dev;
 
 section ("sdram0") unsigned char uart_test[UART_BUFFER_SIZE];
 
-fract32* tmp_buffer;
+unsigned char *tmp_buffer;
 
 int contar = 0;
 bool uart_is_free;
-bool available;
 bool adcAvailable = false;
 
 //Declarations
@@ -47,7 +46,7 @@ void read_digital_input(void);
 void check_adc_available();
 void process_digital_input(unsigned char* buffer, int size);
 int get_next_frame_legth(char* buffer, int* flen);
-void dac_is_free(void);
+bool dac_is_free(void);
 int get_frames(char* buffer, char** frames, int curr_len);
 void send_dac(bool do_send);
 
@@ -58,27 +57,14 @@ void haiptxrx_init_devices(ADI_UART_HANDLE uart, ADI_AD1871_HANDLE dac,
 	uart_dev = uart;
 	dac_dev = dac;
 	adc_dev = adc;
-	//printf("Devices initialized\n\n\n");
 }
 
 void haiptxrx_iterate() {
 
 	read_digital_input();
 	check_adc_available();
-	output_analog(); //output_analog(); //printf("Something readed \n\n\n");
+	output_analog();
 	read_analog_input();
-	//read_digital_input(); //Get bytes from serial (care timeouts)
-
-
-	//dac_is_free();
-	//Transmit it
-	//printf("output_analog(); \n\n\n");
-
-	/*
-	 read_analog_input();
-	 if (has_rx_frame_ready()) { //If full frame received
-	 output_digital(); //Send through serial
-	 }*/
 
 }
 
@@ -108,16 +94,7 @@ void read_digital_input(void) {
 		adi_uart_GetRxBuffer(uart_dev, &uart_rx_buffer);
 		memcpy(digital_input_buffer, uart_rx_buffer, UART_BUFFER_SIZE);
 		adi_uart_SubmitRxBuffer(uart_dev, uart_rx_buffer, UART_BUFFER_SIZE);
-		frame_count++;
-		if(contar>=1){
-			printf("s");
-		}
-		contar++;
-
-		//memcpy(digital_input_buffer, uart_rx_buffer, UART_BUFFER_SIZE);
-		//process_digital_input(digital_input_buffer, UART_BUFFER_SIZE);
-		//printf("Something processed \n\n\n");
-
+		process_digital_input(digital_input_buffer, UART_BUFFER_SIZE);
 	}
 }
 
@@ -140,10 +117,9 @@ void process_digital_input(unsigned char* buffer, int size) {
 	 }
 
 	 //frame_count += get_frames(digital_input_buffer, frame_buffer, frame_count);
-	 /*Temporal*/
 
+	 /*Temporal*/
 	frame_count++;
-	//printf("get_frames(); \n\n\n");
 
 }
 
@@ -179,13 +155,10 @@ bool has_tx_frame_ready() {
 }
 
 void output_analog() {
-	dac_is_free();
 
-	if (available) {
+	if (dac_is_free()) {
 		if (frame_count >= 1) {
-			//printf("frame_ready \n\n\n");
 			//modulate_frame(frame_buffer[0], output_buffer);
-			//printf("frame modulated \n\n\n");
 			send_dac(true);
 			frame_count = 0;
 		} else {
@@ -194,38 +167,34 @@ void output_analog() {
 	}
 }
 
-void dac_is_free(void) {
-
+bool dac_is_free(void) {
+	bool available;
 	adi_ad1854_IsTxBufAvailable(dac_dev, &available);
-	/*	if(available && contar > 1){
-	 printf("s");
-	 }*/
-	//return available;
+	return available;
 }
 
 void send_dac(bool do_send) {
 	ADI_AD1854_RESULT result;
 	int i = 0;
+	int j = 0;
 	result = adi_ad1854_GetTxBuffer(dac_dev, &dac_buffer);
-	fract32* fr32_buffer = (fract32*) dac_buffer;
+	//fract32* fr32_buffer = (fract32*) dac_buffer;
 	if (do_send) {
-		for (i = 0; i < AUDIO_BUFFER_SIZE; i++) {
-			dac_buffer[i] = 100;
+		for (i = 0; i < AUDIO_BUFFER_SIZE*2; i++) {
+			if(i>=UART_BUFFER_SIZE && i%UART_BUFFER_SIZE == 0){
+				j=0;
+			}
+			tmp_buffer[i] = digital_input_buffer[j];
+			j++;
 		}
-
-		if(contar>1){
-			//printf("\n s \n");
-		}
-		//memcpy(fr32_buffer, digital_input_buffer, DAC_BUFFER_SIZE);
+		//memcpy(dac_buffer, digital_input_buffer, AUDIO_BUFFER_SIZE);
 	} else {
 
-		for (i = 0; i < AUDIO_BUFFER_SIZE; i++) {
-			dac_buffer[i] = 0;
-		}
-		if(contar>1){
-			//printf("\n s \n");
+		for (i = 0; i < AUDIO_BUFFER_SIZE*2; i++) {
+			tmp_buffer[i] = 0;
 		}
 	}
+	memcpy(dac_buffer, tmp_buffer, AUDIO_BUFFER_SIZE);
 	adi_ad1854_SubmitTxBuffer(dac_dev, dac_buffer, AUDIO_BUFFER_SIZE);
 }
 
@@ -234,29 +203,17 @@ bool has_rx_frame_ready(void) {
 }
 void output_digital(void) {
 	bool uart_tx_free = false;
+
 	adi_uart_IsTxBufferAvailable(uart_dev, &uart_tx_free);
-
-	// Cpgemos puntero a buffer de tx libre
 	if (uart_tx_free) {
-		if(contar>1){
-			//printf("\n s \n");
-		}
 		adi_uart_GetTxBuffer(uart_dev, &uart_tx_buffer);
-
-		// Copiamos lo que quermoes enviar
-		memcpy(uart_tx_buffer, tmp_buffer, UART_BUFFER_SIZE);
-
-		//Enciamos el buffer
+		memcpy(uart_tx_buffer, adc_buffer, UART_BUFFER_SIZE);
 		adi_uart_SubmitTxBuffer(uart_dev, uart_tx_buffer, UART_BUFFER_SIZE); //envia
 	}
 }
 
 void read_analog_input(void) {
-	float valor;
-
 	if (adc_buffer != NULL) {
-
-		tmp_buffer = (fract32 *) adc_buffer;
 		adi_ad1871_SubmitRxBuffer(adc_dev, adc_buffer, AUDIO_BUFFER_SIZE);
 		output_digital();
 		adc_buffer = NULL;
