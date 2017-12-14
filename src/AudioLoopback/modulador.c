@@ -16,8 +16,9 @@
 #include <math.h>
 #include "HaipModulator.h"
 #include "HaipCommons.h"
+#include <string.h>
 
-void mapeador(char* frame_buffer);
+void mapeador(unsigned char* frame_buffer);
 void muestreo(void);
 void filtro(void);
 void oscilador(void);
@@ -122,7 +123,7 @@ segment ("sdram0") float garraiatzaile_imag[NUM_MODULADOS];
 // Parametros de salida: Ninguno											//
 //																			//
 //--------------------------------------------------------------------------//
-void modulate_frame(char* frame_buffer, fract32* output_buffer) {
+void modulate_frame(unsigned char* frame_buffer, fract32* output_buffer) {
 	mapeador(frame_buffer);
 	muestreo();
 	filtro();
@@ -144,11 +145,11 @@ void modulate_frame(char* frame_buffer, fract32* output_buffer) {
 //																			//
 //--------------------------------------------------------------------------//
 
-void mapeador(char* frame_buffer) {
+void mapeador(unsigned char* frame_buffer) {
 
 	int num_decimal = 0;
 
-	for (indice_simbolos = 0; indice_simbolos < strlength(frame_buffer) * 2;
+	for (indice_simbolos = 0; indice_simbolos < strlen(frame_buffer) * 2;
 			indice_simbolos++) {
 		if (indice_simbolos % 2 == 0) {
 			num_decimal = char_to_dec(frame_buffer[indice_simbolos / 2],

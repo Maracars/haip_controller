@@ -271,16 +271,16 @@ void filtro2(){
   		retraso2[indice_retraso] = 0;
 	}
 
-	fir_init(state,filter_fr32,retraso2,COEFICIENTES_FILTRO,0);
-	fir_fr32(left_in_fr32_real_2,left_out_fr32_real_2,NUM_FILTRADOS_2,&state);
+	//fir_init(state_real,filter_fr32,retraso2,COEFICIENTES_FILTRO,0);
+	//fir_fr32(left_in_fr32_real_2,left_out_fr32_real_2,NUM_FILTRADOS_2,&state_real);
 
 	for (indice_retraso = 0 ; indice_retraso < COEFICIENTES_FILTRO ; indice_retraso++){
 
 	  		retraso2[indice_retraso] = 0;
 	}
 
-	fir_init(state,filter_fr32,retraso2,COEFICIENTES_FILTRO,0);
-	fir_fr32(left_in_fr32_imag_2,left_out_fr32_imag_2,NUM_FILTRADOS_2,&state);
+	//fir_init(state_imag,filter_fr32,retraso2,COEFICIENTES_FILTRO,0);
+	//fir_fr32(left_in_fr32_imag_2,left_out_fr32_imag_2,NUM_FILTRADOS_2,&state_imag);
 
 	for(indice_muestrasFiltradas=0 ; indice_muestrasFiltradas<NUM_FILTRADOS_2 ; indice_muestrasFiltradas++)
 	{

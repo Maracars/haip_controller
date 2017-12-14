@@ -20,7 +20,7 @@ int char_to_dec(char c, int bits_p_symbol) {
 	int ret_dec = 0;
 	int i;
 	for (i = 0; i < bits_p_symbol; i++) {
-		ret_dec = ret_dec + c & pow(2, i);
+		ret_dec = ret_dec + (int)c & (int)pow(2, i);
 	}
 	return ret_dec;
 }

@@ -18,7 +18,8 @@
 #include <drivers/dac/ad1854/adi_ad1854.h>
 /* AD1871 driver includes */
 #include <drivers/adc/ad1871/adi_ad1871.h>
-
+#include <string.h>
+#include <math.h>
 //DEFINITIONS
 
 #define UART_BUFFER_SIZE 50

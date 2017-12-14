@@ -8,12 +8,12 @@ void bits_to_char(void);
 void ordenar(void);
 void corregir(int c[][] , int transpose_c[][]);
 
-segment ("sdram0") int trama_salida_demod_decodificada[NUM_BITS];
-segment ("sdram0") int c1[1][7] = {{0,0,0,0,0,0,0}}; //Primer Codeword ordenado. 7 son el número de bits de cada grupo después de codificar, es decir, a cada grupo de 4 bits se le añaden 3, consiguiendo grupos de 7 bits
-segment ("sdram0") int c2[1][7] = {{0,0,0,0,0,0,0}}; //Segundo Codeword ordenado
-segment ("sdram0") int a[1][7] = {{0,0,0,0,0,0,0}}; //Primer Codeword desordenado
-segment ("sdram0") int b[1][7] = {{0,0,0,0,0,0,0}}; //Segundo Codeword desordenado
-segment ("sdram0") int g = 0;
+section ("sdram0") int trama_salida_demod_decodificada[NUM_BITS];
+section ("sdram0") int c1[1][7] = {{0,0,0,0,0,0,0}}; //Primer Codeword ordenado. 7 son el número de bits de cada grupo después de codificar, es decir, a cada grupo de 4 bits se le añaden 3, consiguiendo grupos de 7 bits
+section ("sdram0") int c2[1][7] = {{0,0,0,0,0,0,0}}; //Segundo Codeword ordenado
+section ("sdram0") int a[1][7] = {{0,0,0,0,0,0,0}}; //Primer Codeword desordenado
+section ("sdram0") int b[1][7] = {{0,0,0,0,0,0,0}}; //Segundo Codeword desordenado
+section ("sdram0") int g = 0;
 
 void decodificador(){
 
