@@ -52,7 +52,7 @@ to the terms of the associated Analog Devices License Agreement.
 #define AD1871_SPORT_DEV_NUM    (0u)
 
 /* Buffer size */
-#define	BUFFER_SIZE				50
+#define	BUFFER_SIZE				4
 
 /* Application time out value */
 #define	TIME_OUT_VAL			(0xFFFFFFFu)

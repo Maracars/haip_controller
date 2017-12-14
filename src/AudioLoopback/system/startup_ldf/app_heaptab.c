@@ -1,8 +1,8 @@
 /*
-** ADSP-BF537 user heap source file generated on Dec 11, 2017 at 12:23:04.
+** ADSP-BF537 user heap source file generated on Nov 05, 2013 at 12:24:11.
 */
 /*
-** Copyright (C) 2000-2015 Analog Devices Inc., All Rights Reserved.
+** Copyright (C) 2000-2013 Analog Devices Inc., All Rights Reserved.
 **
 ** This file is generated automatically based upon the options selected
 ** in the System Configuration utility. Changes to the Heap configuration
@@ -14,8 +14,8 @@
 ** these are bounded by comments that start with "$VDSG". Only changes
 ** placed within these sections are preserved when this file is re-generated.
 **
-** Product      : CrossCore Embedded Studio
-** Tool Version : 6.0.4.0
+** Product      : CrossCore Embedded Studio 1.0.2.0
+** Tool Version : 6.0.2.32
 */
 
 #ifdef _MISRA_RULES
@@ -32,8 +32,8 @@
 #endif /* _MISRA_RULES */
 
 
-extern "asm" unsigned long ldf_heap_space;
-extern "asm" unsigned long ldf_heap_length;
+extern "asm" int ldf_heap_space;
+extern "asm" int ldf_heap_length;
 
 struct heap_table_t
 {

@@ -1,18 +1,15 @@
 /*
-** ADI initialize header file.
+** adi_initialize.h header file generated on enero 17, 2016 at 12:18:15.
 **
-** Copyright (C) 2000-2012 Analog Devices Inc., All Rights Reserved.
+** Copyright (C) 2000-2016 Analog Devices Inc., All Rights Reserved.
 **
-** This file is generated automatically
+** This file is generated automatically. You should not modify this source file,
+** as your changes will be lost if this source file is re-generated.
 */
 
 #ifndef __ADI_COMPONENT_INIT_H__
 #define __ADI_COMPONENT_INIT_H__
 #include <stdint.h>
-
-#ifdef __HAS_SEC__
-#include <services/int/adi_sec.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,3 +23,4 @@ int32_t adi_initComponents(void);
 #endif
 
 #endif /* __ADI_COMPONENT_INIT_H__ */
+

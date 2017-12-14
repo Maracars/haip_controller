@@ -7,11 +7,11 @@
 void char_to_bits(void);
 void desordenar(void);
 
-segment ("sdram0") int trama_entrada_mod_bits[NUM_BITS];
-segment ("sdram0") int c1_c[7]; //Primer Codeword ordenado. 7 son el número de bits de cada grupo después de codificar, es decir, a cada grupo de 4 bits se le añaden 3, consiguiendo grupos de 7 bits
-segment ("sdram0") int c2_c[7]; //Segundo Codeword ordenado
-segment ("sdram0") int a_c[7]; //Primer Codeword desordenado
-segment ("sdram0") int b_c[7]; //Segundo Codeword desordenado
+section ("sdram0") int trama_entrada_mod_bits[NUM_BITS];
+section ("sdram0") int c1_c[7]; //Primer Codeword ordenado. 7 son el número de bits de cada grupo después de codificar, es decir, a cada grupo de 4 bits se le añaden 3, consiguiendo grupos de 7 bits
+section ("sdram0") int c2_c[7]; //Segundo Codeword ordenado
+section ("sdram0") int a_c[7]; //Primer Codeword desordenado
+section ("sdram0") int b_c[7]; //Segundo Codeword desordenado
 
 
 

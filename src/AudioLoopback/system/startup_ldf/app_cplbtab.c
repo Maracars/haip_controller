@@ -1,8 +1,8 @@
 /*
-** ADSP-BF537 CPLB table definitions generated on Dec 11, 2017 at 12:23:04.
+** ADSP-BF537 CPLB table definitions generated on Nov 05, 2013 at 12:24:11.
 */
 /*
-** Copyright (C) 2000-2015 Analog Devices Inc., All Rights Reserved.
+** Copyright (C) 2000-2013 Analog Devices Inc., All Rights Reserved.
 **
 ** This file is generated automatically based upon the options selected
 ** in the System Configuration utility. Changes to the CPLB configuration
@@ -14,13 +14,12 @@
 ** these are bounded by comments that start with "$VDSG". Only changes
 ** placed within these sections are preserved when this file is re-generated.
 **
-** Product      : CrossCore Embedded Studio
-** Tool Version : 6.0.4.0
+** Product      : CrossCore Embedded Studio 1.0.2.0
+** Tool Version : 6.0.2.32
 */
 
 #include <sys/platform.h>
 #include <cplbtab.h>
-#include <cplb.h>
 
 #ifdef _MISRA_RULES
 #pragma diag(push)
@@ -47,6 +46,10 @@ cplb_entry dcplbs_table[] = {
    {0x20000000, (PAGE_SIZE_1MB | CPLB_DNOCACHE)}, 
 
       // 128 MB (Maximum) SDRAM memory space 
+   {0x00000000, (PAGE_SIZE_4MB | CACHE_MEM_MODE | CPLB_DIRTY | CPLB_LOCK)}, 
+   {0x00400000, (PAGE_SIZE_4MB | CACHE_MEM_MODE | CPLB_DIRTY | CPLB_LOCK)}, 
+   {0x00800000, (PAGE_SIZE_4MB | CACHE_MEM_MODE | CPLB_DIRTY | CPLB_LOCK)}, 
+   {0x00C00000, (PAGE_SIZE_4MB | CACHE_MEM_MODE | CPLB_DIRTY | CPLB_LOCK)}, 
 
    // Async Memory Bank 3
    {0x20300000, (PAGE_SIZE_1MB | CPLB_DNOCACHE)}, 

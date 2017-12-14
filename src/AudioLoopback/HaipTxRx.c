@@ -64,7 +64,8 @@ void haiptxrx_iterate() {
 	read_digital_input();
 	check_adc_available();
 	output_analog(); //output_analog(); //printf("Something readed \n\n\n");
-	read_digital_input(); //Get bytes from serial (care timeouts)
+	read_analog_input();
+	//read_digital_input(); //Get bytes from serial (care timeouts)
 	contar++;
 
 	//dac_is_free();
@@ -81,15 +82,14 @@ void haiptxrx_iterate() {
 
 void check_adc_available() {
 	ADI_AD1871_RESULT Result;
-	Result = (uint32_t) adi_ad1871_IsRxBufAvailable(adc_dev, &adcAvailable);
+	Result = adi_ad1871_IsRxBufAvailable(adc_dev, &adcAvailable);
 
 	/* IF (Failure) */
-
 
 	/* IF (AD1871 Buffer available) */
 	if (adcAvailable) {
 		/* Get AD1871 processed buffer address */
-		Result = (uint32_t) adi_ad1871_GetRxBuffer(adc_dev, &adc_buffer);
+		Result = adi_ad1871_GetRxBuffer(adc_dev, &adc_buffer);
 
 		/* IF (Failure) */
 
@@ -116,24 +116,24 @@ void read_digital_input(void) {
 
 void process_digital_input(unsigned char* buffer, int size) {
 
-	if (check_timeout(last_digital_input_t, DIGITAL_INPUT_TIMEOUT,
-			&last_digital_input_t)) {
-		//strcpy(digital_input_buffer, buffer);
-		//printf("strcpy(digital_input_buffer, buffer); \n\n\n");
+	/*if (check_timeout(last_digital_input_t, DIGITAL_INPUT_TIMEOUT,
+	 &last_digital_input_t)) {
+	 //strcpy(digital_input_buffer, buffer);
+	 //printf("strcpy(digital_input_buffer, buffer); \n\n\n");
 
-	} else {
-		if (strlen(digital_input_buffer)
-				+ strlen(buffer) >= DIGITAL_INPUT_BUFFER_SIZE) {
-			//printf("ERROR: Overflow detected on uart input buffer, emptying buffer");
-			digital_input_buffer[0] = '\0';
-		}
-		//strcat(digital_input_buffer, buffer);
-		//printf("strcat(digital_input_buffer, buffer); \n\n\n");
+	 } else {
+	 if (strlen(digital_input_buffer)
+	 + strlen(buffer) >= DIGITAL_INPUT_BUFFER_SIZE) {
+	 //printf("ERROR: Overflow detected on uart input buffer, emptying buffer");
+	 digital_input_buffer[0] = '\0';
+	 }
+	 //strcat(digital_input_buffer, buffer);
+	 //printf("strcat(digital_input_buffer, buffer); \n\n\n");
 
-	}
+	 }
 
-	//frame_count += get_frames(digital_input_buffer, frame_buffer, frame_count);
-	/*Temporal*/
+	 //frame_count += get_frames(digital_input_buffer, frame_buffer, frame_count);
+	 /*Temporal*/
 
 	frame_count++;
 	//printf("get_frames(); \n\n\n");
@@ -173,13 +173,13 @@ bool has_tx_frame_ready() {
 
 void output_analog() {
 	dac_is_free();
+
 	if (available) {
 
-
-			//printf("frame_ready \n\n\n");
-			//modulate_frame(frame_buffer[0], output_buffer);
-			//printf("frame modulated \n\n\n");
-			send_dac(false);
+		//printf("frame_ready \n\n\n");
+		//modulate_frame(frame_buffer[0], output_buffer);
+		//printf("frame modulated \n\n\n");
+		send_dac(false);
 	} else {
 		//printf("dac_is_free FALSE \n\n\n");
 	}
@@ -188,7 +188,9 @@ void output_analog() {
 void dac_is_free(void) {
 
 	adi_ad1854_IsTxBufAvailable(dac_dev, &available);
-
+	/*	if(available && contar > 1){
+	 printf("s");
+	 }*/
 	//return available;
 }
 
@@ -200,12 +202,9 @@ void send_dac(bool do_send) {
 		memcpy(fr32_buffer, entrada_dac, DAC_BUFFER_SIZE);
 	} else {
 		int i;
-		for (i = 0; i < AUDIO_BUFFER_SIZE/4; i++) {
+		for (i = 0; i < AUDIO_BUFFER_SIZE / 4; i++) {
 			fr32_buffer[i] = 0;
 		}
-	}
-	if(adcAvailable){
-		adi_ad1871_SubmitRxBuffer(adc_dev, adc_buffer, AUDIO_BUFFER_SIZE);
 	}
 	adi_ad1854_SubmitTxBuffer(dac_dev, dac_buffer, AUDIO_BUFFER_SIZE);
 }
@@ -217,5 +216,9 @@ void output_digital(void) {
 }
 
 void read_analog_input(void) {
+	if (adc_buffer != NULL) {
+		adi_ad1871_SubmitRxBuffer(adc_dev, adc_buffer, AUDIO_BUFFER_SIZE);
+		adc_buffer = NULL;
+	}
 }
 

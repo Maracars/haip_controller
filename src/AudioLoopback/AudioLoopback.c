@@ -27,7 +27,6 @@ to the terms of the associated Analog Devices License Agreement.
 #include <filter.h>
 #include <fract2float_conv.h>
 #include "declaraciones.h"
-#include "HaipTxRx.h"
 //#include "filter1_fr16_lp.h"
 
 #include "funciones.h"
@@ -39,6 +38,9 @@ to the terms of the associated Analog Devices License Agreement.
 #include <services\pwr\adi_pwr.h>
 #include <string.h>
 
+#include "HaipCommons.h"
+#include "HaipModulator.h"
+#include "HaipTxRx.h"
 
 /* ADI initialization header */
 #include "system/adi_initialize.h"
@@ -56,9 +58,6 @@ void salirPorDAC(void);
 void obtenerEntradaADC(void);
 void cerrarConversores(void);
 
-ADI_UART_HANDLE uart_device;
-ADI_AD1871_HANDLE dac_device;
-
 
 /* UART Handle */
 static ADI_UART_HANDLE hDevice;
@@ -73,23 +72,26 @@ uint32_t	Result;
 /*=============  D A T A  =============*/
 #pragma align 4
 /*
-segment ("sdram0")  fract32 guardado1[BUFFER_SIZE_CONV/8];
-segment ("sdram0")  fract32 guardado2[BUFFER_SIZE_CONV/8];
-segment ("sdram0")  fract32 salida1[BUFFER_SIZE_CONV/8];
-segment ("sdram0")  fract32 salida2[BUFFER_SIZE_CONV/8];
+section ("sdram0")  fract32 guardado1[BUFFER_SIZE_CONV/8];
+section ("sdram0")  fract32 guardado2[BUFFER_SIZE_CONV/8];
+section ("sdram0")  fract32 salida1[BUFFER_SIZE_CONV/8];
+section ("sdram0")  fract32 salida2[BUFFER_SIZE_CONV/8];
 */
 
 //Variables conversores
 fract32 *ptr_fr32;
 
-segment ("sdram0") fract32 entrada_dac[LONGITUD_DAC];
-segment ("sdram0") fract32 entrada_adc[LONGITUD_ADC];
+section ("sdram0") fract32 entrada_dac[LONGITUD_DAC];
+section ("sdram0") fract32 entrada_adc[LONGITUD_ADC];
 
-segment ("sdram0") int indice_guardado = 0;
+section ("sdram0") fract32 captura_prueba[BUFFER_SIZE_CONV/4];
+
+section ("sdram0") int indice_guardado = 0;
 
 //Variables UART
-segment ("sdram0") unsigned char trama_entrada_mod[CARACTERES_PRUEBA + BUFFER_SIZE];// = {"actualizar"};
-segment ("sdram0") unsigned char trama_salida_demod[BUFFER_SIZE];
+section ("sdram0") unsigned char trama_entrada_mod[CARACTERES_PRUEBA + BUFFER_SIZE];// = {"actualizar"};
+section ("sdram0") unsigned char trama_salida_demod[BUFFER_SIZE];
+section ("sdram0") unsigned char entrada_test[BUFFER_SIZE];
 
 /* Handle to the AD1871 device instance */
 static ADI_AD1871_HANDLE    hAd1871Adc;
@@ -120,10 +122,10 @@ static uint32_t InitAd1854Dac(void);
 
 /* Audio data buffers */
 #pragma align 4
-segment ("sdram0") uint8_t RxAudioBuf1[BUFFER_SIZE_CONV];
-segment ("sdram0") uint8_t RxAudioBuf2[BUFFER_SIZE_CONV];
-segment ("sdram0") uint8_t TxAudioBuf1[BUFFER_SIZE_CONV];
-segment ("sdram0") uint8_t TxAudioBuf2[BUFFER_SIZE_CONV];
+section ("sdram0") uint8_t RxAudioBuf1[BUFFER_SIZE_CONV];
+section ("sdram0") uint8_t RxAudioBuf2[BUFFER_SIZE_CONV];
+section ("sdram0") uint8_t TxAudioBuf1[BUFFER_SIZE_CONV];
+section ("sdram0") uint8_t TxAudioBuf2[BUFFER_SIZE_CONV];
 bool bIsBufAvailable;
 
 
@@ -134,7 +136,7 @@ char BufferRx1[BUFFER_SIZE];
 char BufferRx2[BUFFER_SIZE];
 unsigned char *UBufferBidali,*UBufferJaso;
 bool enviar;
-
+int count = 0;
 
 /* IF (Callback mode) */
 #if defined (ENABLE_CALLBACK)
@@ -265,10 +267,15 @@ void main (void)
 
     initializations();
 
+    memcpy(entrada_test, "MIKE",5);
+    salirPorUART();
+
 
     /* IF (Success) */
     if (Result == 0)
     {
+
+    	haiptxrx_init_devices(hDevice, hAd1854Dac, hAd1871Adc);
 
 /* IF (Application Time-out enabled) */
 #if defined (ENABLE_APP_TIME_OUT)
@@ -280,47 +287,52 @@ void main (void)
 #endif /* ENABLE_APP_TIME_OUT */
 
         {
-
-        	haiptxrx_iterate();
-//
-///* IF (Non-Blocking mode) */
+/* IF (Non-Blocking mode) */
 //#if !defined (ENABLE_CALLBACK)
-//
-//			//UART
-//        	if(!enviar){
-//        		comprobarEntradaUART();
-//        	}
-//
-//			//ADC
-//			comprobarEntradaADC();
-//			comprobarEntradaDAC();
-//
-//
+
+    		//printf("entra al loop.\n");
+
+        	// Aquí se llama a SalirPorUART cuando se recibe un buffer de 4 valores
+       		//comprobarEntradaUART();
+
+			//Se comprueba la disponibilidad de buffers de tx y rx
+			//comprobarEntradaADC();
+
+			//Además de coger un buffer de salida, aquí se copia captura_prueba para su env´çio
+			//comprobarEntradaDAC();
+
 //#endif /* ENABLE_CALLBACK not defined */
-//
-//			obtenerEntradaADC();
-//			salirPorDAC();
+
+			// En leer ADC se leen los buffers completos a un array (captura_prueba)
+			//obtenerEntradaADC();
+
+			// Se envia el buffer generado en comprobarEntrada DAC
+			//salirPorDAC();
+    		//comprobarEntradaDAC();
+			haiptxrx_iterate();
+    		count++;
+
         }
     }
 
     cerrarConversores();
 
-
 }
-
 void comprobarEntradaUART(){
 
 	/* Read a character */
 	respuestaRx=adi_uart_IsRxBufferAvailable (hDevice, &enviar);
 
-	if(enviar){
+
+    if(enviar){
 		respuestaRx=adi_uart_GetRxBuffer (hDevice, &UBufferJaso);//recibe
-		memcpy(trama_entrada_mod,UBufferJaso, BUFFER_SIZE);	//void *s1, const void *s2, size_t n
 
-		//modulador();
+		// Aquí lo copio al buffer de tx y lo envio
+		memcpy(entrada_test,UBufferJaso, BUFFER_SIZE);	//void *s1, const void *s2, size_t n
+		salirPorUART();
 
+		// Acordarse de volver a enviar el buffer
 		respuestaRx=adi_uart_SubmitRxBuffer (hDevice, UBufferJaso, BUFFER_SIZE);
-
 	}
 	//
 
@@ -328,27 +340,22 @@ void comprobarEntradaUART(){
 
 void salirPorUART(){
 
-	UBufferBidali = (unsigned char *) trama_salida_demod;
+	enviar = 0;
 
-	if(trama_salida_demod[0] == 'a'){
-		enviar = false;
+	// Se bloquea hasta que haya buffer (en condiciones normales siempre debería haber)
+	while(!enviar)
+	{
+		respuestaTx=adi_uart_IsTxBufferAvailable (hDevice, &enviar);
 	}
 
+	// Cpgemos puntero a buffer de tx libre
+	respuestaTx=adi_uart_GetTxBuffer (hDevice, &UBufferBidali);
+
+	// Copiamos lo que quermoes enviar
+	memcpy(UBufferBidali, entrada_test, BUFFER_SIZE);
+
+	//Enciamos el buffer
 	respuestaTx=adi_uart_SubmitTxBuffer (hDevice, UBufferBidali, BUFFER_SIZE); //envia
-
-	respuestaTx=adi_uart_IsTxBufferAvailable (hDevice, &enviar);
-
-	if(enviar){
-
-		respuestaTx=adi_uart_GetTxBuffer (hDevice, &UBufferBidali);
-
-		//respuestaRx=adi_uart_SubmitRxBuffer (hDevice, UBufferJaso, BUFFER_SIZE);
-
-		enviar = false;
-
-	}
-
-
 }
 
 void comprobarEntradaDAC(){
@@ -366,6 +373,9 @@ void comprobarEntradaDAC(){
 		/* IF (AD1854 Buffer available) */
 		if (bIsBufAvailable)
 		{
+			if(count > 1){
+				printf("a");
+			}
 			/* Get AD1854 processed buffer address */
 			Result = (uint32_t) adi_ad1854_GetTxBuffer (hAd1854Dac, &pDacBuf);
 
@@ -378,17 +388,10 @@ void comprobarEntradaDAC(){
 
 			ptr_fr32 = (fract32 *) pDacBuf;
 
-			for(indice_conversor=0 ; indice_conversor<LONGITUD_DAC/*BUFFER_SIZE_CONV/4*/ ; indice_conversor++){
+			for(indice_conversor=0 ; indice_conversor<BUFFER_SIZE_CONV/4; indice_conversor++){
 
-				if(enviar){
-					ptr_fr32[indice_conversor]=((fract32) entrada_dac[indice_conversor])>>8;
-				}else{
-
-					ptr_fr32[indice_conversor]= 0;
-				}
+				ptr_fr32[indice_conversor] = captura_prueba[indice_conversor]>>8;
 			}
-
-			enviar = false;
 
 		}
 
@@ -459,36 +462,7 @@ void obtenerEntradaADC(){
 
 			for(indice_conversor=0 ; indice_conversor<BUFFER_SIZE_CONV/4 ; indice_conversor++){
 
-				if(indice_conversor % 2 == 0 && !guardar){//Coger los valores de la derecha (Sincronización)
-
-					valor = VALOR_PICO*fr32_to_float((ptr_fr32[indice_conversor])<<8);
-
-					if(valor > MIN_PICO){
-						cont++;
-						if(cont == 2){
-							guardar = true;
-							indice_conversor = indice_conversor - 2;
-						}
-					}
-				}
-
-				if(guardar){
-
-					entrada_adc[indice_guardado] = (ptr_fr32[indice_conversor])<<8;
-					indice_guardado++;
-
-					if(indice_guardado == LONGITUD_ADC){
-
-						demodulador();
-
-						salirPorUART();
-
-						indice_guardado = 0;
-
-						break;
-					}
-
-				}
+				captura_prueba[indice_conversor]=(ptr_fr32[indice_conversor])<<8;
 
 			}
 
@@ -515,7 +489,7 @@ void cerrarConversores(){
 	    if(Result == 0)
 	    {
 	    	/* Disable AD1854 DAC dataflow */
-	    	Result = adi_ad1854_Enable (dac_device, false);
+	    	Result = adi_ad1854_Enable (hAd1854Dac, false);
 
 	    	/* IF (Failure) */
 	    	if(Result)
@@ -541,7 +515,7 @@ void cerrarConversores(){
 	    if(Result == 0)
 	    {
 	    	/* Close AD1854 DAC instance */
-	    	Result = adi_ad1854_Close (dac_device);
+	    	Result = adi_ad1854_Close (hAd1854Dac);
 
 	    	/* IF (Failure) */
 	    	if(Result)
@@ -597,11 +571,11 @@ void initializations(){
 	pDacBuf = NULL;
 
 	/* Clear audio input and output buffers */
-	/*memset(RxAudioBuf1, 0, BUFFER_SIZE_CONV);
+	memset(RxAudioBuf1, 0, BUFFER_SIZE_CONV);
 	memset(RxAudioBuf2, 0, BUFFER_SIZE_CONV);
 	memset(TxAudioBuf1, 0, BUFFER_SIZE_CONV);
 	memset(TxAudioBuf2, 0, BUFFER_SIZE_CONV);
-*/
+
 	/* Initialize power service */
 	Result = (uint32_t) adi_pwr_Init (PROC_CLOCK_IN, PROC_MAX_CORE_CLOCK, PROC_MAX_SYS_CLOCK, PROC_MIN_VCO_CLOCK);
 
@@ -627,39 +601,41 @@ void initializations(){
 	//UART initialization
 		/* Open UART driver */
 		eResult = adi_uart_Open(UART_DEVICE_NUM, ADI_UART_DIR_BIDIRECTION,
-				gUARTMemory, ADI_UART_BIDIR_DMA_MEMORY_SIZE, &uart_device);
+				gUARTMemory, ADI_UART_BIDIR_DMA_MEMORY_SIZE, &hDevice);
 		CheckResult(eResult);
 
 		/* Set UART Baud Rate */
-		eResult = adi_uart_SetBaudRate(uart_device, BAUD_RATE);
+		eResult = adi_uart_SetBaudRate(hDevice, BAUD_RATE);
 		CheckResult(eResult);
 
 		/* Configure  UART device with NO-PARITY, ONE STOP BIT and 8bit word length. */
-		eResult = adi_uart_SetConfiguration(uart_device, ADI_UART_NO_PARITY,
+		eResult = adi_uart_SetConfiguration(hDevice, ADI_UART_NO_PARITY,
 				ADI_UART_ONE_STOPBIT, ADI_UART_WORDLEN_8BITS);
 		CheckResult(eResult);
 
 		/* Enable the DMA associated with UART if UART is expeced to work with DMA mode */
-		eResult = adi_uart_EnableDMAMode(uart_device, true);
+		eResult = adi_uart_EnableDMAMode(hDevice, true);
 		CheckResult(eResult);
 
 		printf("Setup terminal on PC as described in Readme file. \n\n");
 		printf("Type characters in the terminal program and notice the characters being echoed.\n\n");
 		printf("Press the return key to stop the program.\n");
 
-		adi_uart_SubmitTxBuffer (uart_device, BufferTx1, BUFFER_SIZE);
-		adi_uart_SubmitRxBuffer (uart_device, BufferTx2, BUFFER_SIZE);
-		adi_uart_SubmitTxBuffer (uart_device, BufferRx1, BUFFER_SIZE);
-		adi_uart_SubmitRxBuffer (uart_device, BufferRx2, BUFFER_SIZE);
+		adi_uart_SubmitTxBuffer (hDevice, BufferTx1, BUFFER_SIZE);
+		adi_uart_SubmitRxBuffer (hDevice, BufferTx2, BUFFER_SIZE);
+		adi_uart_SubmitTxBuffer (hDevice, BufferRx1, BUFFER_SIZE);
+		adi_uart_SubmitRxBuffer (hDevice, BufferRx2, BUFFER_SIZE);
 
-		eResult= adi_uart_EnableTx(uart_device,true);
-		eResult= adi_uart_EnableRx(uart_device,true);
+		eResult= adi_uart_EnableTx(hDevice,true);
+		eResult= adi_uart_EnableRx(hDevice,true);
 
 	    /* IF (Success) */
 	    if (Result == 0)
 	    {
 	    	/* Open and configure AD1871 ADC device instance */
 	    	Result = InitAd1871Adc ();
+	    } else {
+	    	printf("Error initing uart");
 	    }
 
 	    /* IF (Success) */
@@ -667,6 +643,8 @@ void initializations(){
 	    {
 	        /* Open and configure AD1854 DAC device instance */
 	        Result = InitAd1854Dac ();
+	    } else {
+	    	printf("Error initing ADC");
 	    }
 
 
@@ -674,13 +652,15 @@ void initializations(){
 		if (Result == 0)
 		{
 			// Enable AD1854 DAC dataflow
-			Result = adi_ad1854_Enable (dac_device, true);
+			Result = adi_ad1854_Enable (hAd1854Dac, true);
 
 			// IF (Failure)
 			if(Result)
 			{
 				DEBUG_MSG2("Failed to enable AD1854 DAC dataflow", Result);
 			}
+		} else {
+			printf(" error initing DAC");
 		}
 
 		// IF (Success)
@@ -694,7 +674,12 @@ void initializations(){
 			{
 				DEBUG_MSG2("Failed to enable AD1871 ADC dataflow", Result);
 			}
+		} else {
+			printf("error enabling DAC");
 		}
+
+		if(Result != 0)
+			printf("Error enabling ADC");
 
 }
 
@@ -717,7 +702,7 @@ static uint32_t InitAd1854Dac (void)
     eResult = adi_ad1854_Open (AD1854_DEV_NUM,
                                &Ad1854DacMemory,
                                ADI_AD1854_MEMORY_SIZE,
-                               &dac_device);
+                               &hAd1854Dac);
 
     /* IF (Failed) */
     if (eResult != ADI_AD1854_SUCCESS)
@@ -727,7 +712,7 @@ static uint32_t InitAd1854Dac (void)
     }
 
     /* Reset AD1854 */
-    eResult = adi_ad1854_HwReset (dac_device, AD1854_RESET_PORT, AD1854_RESET_PIN);
+    eResult = adi_ad1854_HwReset (hAd1854Dac, AD1854_RESET_PORT, AD1854_RESET_PIN);
 
     /* IF (Failed) */
     if (eResult != ADI_AD1854_SUCCESS)
@@ -737,7 +722,7 @@ static uint32_t InitAd1854Dac (void)
     }
 
     /* Set SPORT device number, External clock source (SPORT as Slave) */
-    eResult = adi_ad1854_SetSportDevice (dac_device, AD1854_SPORT_DEV_NUM, true);
+    eResult = adi_ad1854_SetSportDevice (hAd1854Dac, AD1854_SPORT_DEV_NUM, true);
 
     /* IF (Failed) */
     if (eResult != ADI_AD1854_SUCCESS)
@@ -750,7 +735,7 @@ static uint32_t InitAd1854Dac (void)
 #if defined (ENABLE_CALLBACK)
 
     /* Set AD1854 callback function */
-    eResult = adi_ad1854_SetCallback (dac_device, Ad1854DacCallback, NULL);
+    eResult = adi_ad1854_SetCallback (hAd1854Dac, Ad1854DacCallback, NULL);
 
     /* IF (Failed) */
     if (eResult != ADI_AD1854_SUCCESS)
@@ -762,7 +747,7 @@ static uint32_t InitAd1854Dac (void)
 #endif /* ENABLE_CALLBACK */
 
     /* Submit Audio buffer 1 to AD1854 DAC */
-    eResult = adi_ad1854_SubmitTxBuffer (dac_device, &TxAudioBuf1, BUFFER_SIZE_CONV);
+    eResult = adi_ad1854_SubmitTxBuffer (hAd1854Dac, &TxAudioBuf1, BUFFER_SIZE_CONV);
 
     /* IF (Failed) */
     if (eResult != ADI_AD1854_SUCCESS)
@@ -772,7 +757,7 @@ static uint32_t InitAd1854Dac (void)
     }
 
     /* Submit Audio buffer 2 to AD1854 DAC */
-    eResult = adi_ad1854_SubmitTxBuffer (dac_device, &TxAudioBuf2, BUFFER_SIZE_CONV);
+    eResult = adi_ad1854_SubmitTxBuffer (hAd1854Dac, &TxAudioBuf2, BUFFER_SIZE_CONV);
 
     /* IF (Failed) */
     if (eResult != ADI_AD1854_SUCCESS)
