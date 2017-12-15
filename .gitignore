@@ -6,6 +6,9 @@
 *.ko
 *.obj
 *.elf
+*.dxe
+**/.history/
+**/Debug/
 
 # Linker output
 *.ilk

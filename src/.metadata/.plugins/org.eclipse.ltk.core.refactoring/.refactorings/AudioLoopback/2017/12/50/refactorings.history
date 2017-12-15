@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Create constant for 5" description="Extract Constant Refactoring" fileName="file:/E:/ander/Desktop/Clase/POPBL5/haip_controller/src/AudioLoopback/HaipTxRx.c" flags="4" id="org.eclipse.cdt.ui.refactoring.extractconstant.ExtractConstantRefactoring" name="MIN_HAIP_FRAME_LENGTH" selection="2058,1" stamp="1512984911585" visibility="private"/>
+</session>

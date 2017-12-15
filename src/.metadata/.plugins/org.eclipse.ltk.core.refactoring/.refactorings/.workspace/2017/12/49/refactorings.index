@@ -1,0 +1,4 @@
+1512459619815	Rename resource 'HaipTransmitter'
+1512462109844	Delete resource 'HaipTxRx'
+1512470639686	Delete resource 'AudioLoopback/HaipTxRx'
+1512473136883	Delete resource 'AudioLoopback/FrameBuffer.h'
