@@ -10,5 +10,4 @@
 
 void modulate_frame(unsigned char* frame_buffer, fract32* output_buffer);
 
-
 #endif /* HAIPMODULATOR_H_ */

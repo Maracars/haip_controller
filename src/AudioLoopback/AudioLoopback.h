@@ -1,11 +1,11 @@
 /*********************************************************************************
 
-Copyright(c) 2012 Analog Devices, Inc. All Rights Reserved.
+ Copyright(c) 2012 Analog Devices, Inc. All Rights Reserved.
 
-This software is proprietary and confidential.  By using this software you agree
-to the terms of the associated Analog Devices License Agreement.
+ This software is proprietary and confidential.  By using this software you agree
+ to the terms of the associated Analog Devices License Agreement.
 
-*********************************************************************************/
+ *********************************************************************************/
 /*!
  * @file      AudioLoopback.h
  * @brief     Audio loopback example using AD1871 ADC and AD1854 DAC.
@@ -19,7 +19,8 @@ to the terms of the associated Analog Devices License Agreement.
  */
 
 /*=============  I N C L U D E S   =============*/
-
+//#ifndef AUDIO_LOOPBACK_H_
+//#define AUDIO_LOOPBACK_H_
 /* AD1854 driver includes */
 #include <drivers/dac/ad1854/adi_ad1854.h>
 /* AD1871 driver includes */
@@ -29,15 +30,6 @@ to the terms of the associated Analog Devices License Agreement.
 #include <stdlib.h>
 
 /*=============  D E F I N E S  =============*/
-
-/* Enable macro to build example in callback mode */
-//#define ENABLE_CALLBACK
-
-/* Enable macro to enable application time-out */
-//#define ENABLE_APP_TIME_OUT
-
-/* Enable macro to display debug information */
-#define ENABLE_DEBUG_INFO
 
 /* AD1854 Device instance number */
 #define AD1854_DEV_NUM          (0u)
@@ -50,6 +42,9 @@ to the terms of the associated Analog Devices License Agreement.
 
 /* SPORT Device number allocated to AD1871 */
 #define AD1871_SPORT_DEV_NUM    (0u)
+
+/* Device number of the UART */
+#define UART_DEV_NUM    (0u)
 
 /* Buffer size */
 #define	BUFFER_SIZE				4
@@ -80,8 +75,6 @@ to the terms of the associated Analog Devices License Agreement.
 /* Required system clock frequency in Hz */
 #define 	PROC_REQ_SYS_CLOCK  		100000000
 
-/* IF (Debug info enabled) */
-#if defined(ENABLE_DEBUG_INFO)
 #define DEBUG_MSG1(message)     printf(message)
 #define DEBUG_MSG2(message, result) \
     do { \
@@ -92,10 +85,5 @@ to the terms of the associated Analog Devices License Agreement.
             printf("\n"); \
         } \
     } while (0)
-/* ELSE (Debug info disabled) */
-#else
-#define DEBUG_MSG1(message)
-#define DEBUG_MSG2(message, result)
-#endif
-
+//#endif /* AUDIO_LOOPBACK_H_ */
 /*****/

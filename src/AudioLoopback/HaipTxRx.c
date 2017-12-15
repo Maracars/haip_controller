@@ -6,29 +6,21 @@
  */
 #include "HaipTxRx.h"
 #include "HaipCommons.h"
-#include "declaraciones.h"
 #include "HaipModulator.h"
 
-//definitions
-
-#define DIGITAL_INPUT_TIMEOUT 0.02
-#define DIGITAL_INPUT_BUFFER_SIZE 500
-#define FRAME_BUFFER_SIZE 10
-#define AUDIO_BUFFER_SIZE 65536*2
-#define DAC_BUFFER_SIZE 900
-
 //Local variables
-section ("sdram0") unsigned char digital_input_buffer[UART_BUFFER_SIZE];
+section ("sdram0") unsigned char digital_input_buffer[HAIP_UART_BUFFER_SIZE];
 double last_digital_input_t = 0;
-section ("sdram0") unsigned char frame_buffer[FRAME_BUFFER_SIZE][HAIP_FRAME_LENGTH_MAX];
-section ("sdram0") fract32 output_buffer[DAC_BUFFER_SIZE];
+section ("sdram0") unsigned char frame_buffer[HAIP_FRAME_BUFFER_SIZE][HAIP_FRAME_LENGTH_MAX];
+section ("sdram0") fract32 output_buffer[HAIP_DAC_BUFFER_SIZE];
 unsigned char *uart_rx_buffer, *adc_buffer, *dac_buffer, *uart_tx_buffer;
 int frame_count = 0;
+
 static ADI_UART_HANDLE uart_dev;
 static ADI_AD1871_HANDLE dac_dev;
 static ADI_AD1871_HANDLE adc_dev;
 
-section ("sdram0") unsigned char uart_test[UART_BUFFER_SIZE];
+section ("sdram0") unsigned char uart_test[HAIP_UART_BUFFER_SIZE];
 
 unsigned char *tmp_buffer;
 
@@ -43,7 +35,7 @@ void output_analog(void);
 void output_digital(void);
 void read_analog_input(void);
 void read_digital_input(void);
-void check_adc_available();
+void check_adc_available(void);
 void process_digital_input(unsigned char* buffer, int size);
 int get_next_frame_legth(char* buffer, int* flen);
 bool dac_is_free(void);
@@ -59,13 +51,13 @@ void haiptxrx_init_devices(ADI_UART_HANDLE uart, ADI_AD1871_HANDLE dac,
 	adc_dev = adc;
 }
 
-void haiptxrx_iterate() {
+bool haiptxrx_iterate() {
 
 	read_digital_input();
 	check_adc_available();
 	output_analog();
 	read_analog_input();
-
+	return false;
 }
 
 void check_adc_available() {
@@ -77,7 +69,7 @@ void check_adc_available() {
 	/* IF (AD1871 Buffer available) */
 	if (adcAvailable) {
 		/* Get AD1871 processed buffer address */
-		Result = adi_ad1871_GetRxBuffer(adc_dev, &adc_buffer);
+		Result = adi_ad1871_GetRxBuffer(adc_dev, (void**) &adc_buffer);
 
 		/* IF (Failure) */
 
@@ -91,10 +83,10 @@ void read_digital_input(void) {
 	ADI_UART_RESULT res;
 	res = adi_uart_IsRxBufferAvailable(uart_dev, &uart_is_free);
 	if (uart_is_free) {
-		adi_uart_GetRxBuffer(uart_dev, &uart_rx_buffer);
-		memcpy(digital_input_buffer, uart_rx_buffer, UART_BUFFER_SIZE);
-		adi_uart_SubmitRxBuffer(uart_dev, uart_rx_buffer, UART_BUFFER_SIZE);
-		process_digital_input(digital_input_buffer, UART_BUFFER_SIZE);
+		adi_uart_GetRxBuffer(uart_dev,(void**) &uart_rx_buffer);
+		memcpy(digital_input_buffer, uart_rx_buffer, HAIP_UART_BUFFER_SIZE);
+		adi_uart_SubmitRxBuffer(uart_dev, uart_rx_buffer, HAIP_UART_BUFFER_SIZE);
+		process_digital_input(digital_input_buffer, HAIP_UART_BUFFER_SIZE);
 	}
 }
 
@@ -117,8 +109,7 @@ void process_digital_input(unsigned char* buffer, int size) {
 	 }
 
 	 //frame_count += get_frames(digital_input_buffer, frame_buffer, frame_count);
-
-	 /*Temporal*/
+	 */
 	frame_count++;
 
 }
@@ -127,10 +118,10 @@ int get_frames(char* buffer, char** frames, int curr_len) {
 	int frame_len;
 	int frame_cnt = curr_len;
 	while (get_next_frame_legth(buffer, &frame_len)
-			|| frame_count < FRAME_BUFFER_SIZE) {
+			|| frame_count < HAIP_FRAME_BUFFER_SIZE) {
 		memcpy(frames[frame_cnt], buffer, frame_len);
 		frames[frame_cnt][frame_len] = '\0';
-		strcpy(buffer, buffer[frame_len]);
+		strcpy(buffer, &buffer[frame_len]);
 		frame_cnt++;
 	}
 	return frame_cnt - curr_len;
@@ -177,12 +168,12 @@ void send_dac(bool do_send) {
 	ADI_AD1854_RESULT result;
 	int i = 0;
 	int j = 0;
-	result = adi_ad1854_GetTxBuffer(dac_dev, &dac_buffer);
+	result = adi_ad1854_GetTxBuffer(dac_dev,(void**) &dac_buffer);
 	//fract32* fr32_buffer = (fract32*) dac_buffer;
 	if (do_send) {
-		for (i = 0; i < AUDIO_BUFFER_SIZE*2; i++) {
-			if(i>=UART_BUFFER_SIZE && i%UART_BUFFER_SIZE == 0){
-				j=0;
+		for (i = 0; i < HAIP_AUDIO_BUFFER_SIZE * 2; i++) {
+			if (i >= HAIP_UART_BUFFER_SIZE && i % HAIP_UART_BUFFER_SIZE == 0) {
+				j = 0;
 			}
 			tmp_buffer[i] = digital_input_buffer[j];
 			j++;
@@ -190,12 +181,12 @@ void send_dac(bool do_send) {
 		//memcpy(dac_buffer, digital_input_buffer, AUDIO_BUFFER_SIZE);
 	} else {
 
-		for (i = 0; i < AUDIO_BUFFER_SIZE*2; i++) {
+		for (i = 0; i < HAIP_AUDIO_BUFFER_SIZE * 2; i++) {
 			tmp_buffer[i] = 0;
 		}
 	}
-	memcpy(dac_buffer, tmp_buffer, AUDIO_BUFFER_SIZE);
-	adi_ad1854_SubmitTxBuffer(dac_dev, dac_buffer, AUDIO_BUFFER_SIZE);
+	memcpy(dac_buffer, tmp_buffer, HAIP_AUDIO_BUFFER_SIZE);
+	adi_ad1854_SubmitTxBuffer(dac_dev, dac_buffer, HAIP_AUDIO_BUFFER_SIZE);
 }
 
 bool has_rx_frame_ready(void) {
@@ -206,15 +197,15 @@ void output_digital(void) {
 
 	adi_uart_IsTxBufferAvailable(uart_dev, &uart_tx_free);
 	if (uart_tx_free) {
-		adi_uart_GetTxBuffer(uart_dev, &uart_tx_buffer);
-		memcpy(uart_tx_buffer, adc_buffer, UART_BUFFER_SIZE);
-		adi_uart_SubmitTxBuffer(uart_dev, uart_tx_buffer, UART_BUFFER_SIZE); //envia
+		adi_uart_GetTxBuffer(uart_dev, (void**)&uart_tx_buffer);
+		memcpy(uart_tx_buffer, adc_buffer, HAIP_UART_BUFFER_SIZE);
+		adi_uart_SubmitTxBuffer(uart_dev, uart_tx_buffer, HAIP_UART_BUFFER_SIZE); //envia
 	}
 }
 
 void read_analog_input(void) {
 	if (adc_buffer != NULL) {
-		adi_ad1871_SubmitRxBuffer(adc_dev, adc_buffer, AUDIO_BUFFER_SIZE);
+		adi_ad1871_SubmitRxBuffer(adc_dev, adc_buffer, HAIP_AUDIO_BUFFER_SIZE);
 		output_digital();
 		adc_buffer = NULL;
 	}
