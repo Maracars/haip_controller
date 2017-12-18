@@ -18,10 +18,8 @@ bool check_timeout(double last, double limit, double* new_last) {
 
 int char_to_dec(char c, int bits_p_symbol) {
 	int ret_dec = 0;
-	int i;
-	for (i = 0; i < bits_p_symbol; i++) {
-		ret_dec = ret_dec + (int)c & (int)pow(2, i);
-	}
+	int max_decimal = (int) pow(2, bits_p_symbol) - 1;
+	ret_dec = (int) c & max_decimal;
 	return ret_dec;
 }
 
