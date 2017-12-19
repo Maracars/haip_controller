@@ -174,7 +174,7 @@ void send_dac(bool do_send) {
 	result = adi_ad1854_GetTxBuffer(dac_dev, (void**) &dac_buffer);
 	//fract32* fr32_buffer = (fract32*) dac_buffer;
 	if (do_send) {
-		for (i = 0; i < HAIP_AUDIO_BUFFER_SIZE * 2; i++) {
+		for (i = 0; i < HAIP_ANALOG_BUFFER_SIZE * 2; i++) {
 			if (i >= HAIP_UART_BUFFER_SIZE && i % HAIP_UART_BUFFER_SIZE == 0) {
 				j = 0;
 			}
@@ -184,12 +184,12 @@ void send_dac(bool do_send) {
 		//memcpy(dac_buffer, digital_input_buffer, AUDIO_BUFFER_SIZE);
 	} else {
 
-		for (i = 0; i < HAIP_AUDIO_BUFFER_SIZE * 2; i++) {
+		for (i = 0; i < HAIP_ANALOG_BUFFER_SIZE * 2; i++) {
 			tmp_buffer[i] = 0;
 		}
 	}
-	memcpy(dac_buffer, tmp_buffer, HAIP_AUDIO_BUFFER_SIZE);
-	adi_ad1854_SubmitTxBuffer(dac_dev, dac_buffer, HAIP_AUDIO_BUFFER_SIZE);
+	memcpy(dac_buffer, tmp_buffer, HAIP_ANALOG_BUFFER_SIZE);
+	adi_ad1854_SubmitTxBuffer(dac_dev, dac_buffer, HAIP_ANALOG_BUFFER_SIZE);
 }
 
 bool has_rx_frame_ready(void) {
@@ -208,7 +208,7 @@ void output_digital(void) {
 
 void read_analog_input(void) {
 	if (adc_buffer != NULL) {
-		adi_ad1871_SubmitRxBuffer(adc_dev, adc_buffer, HAIP_AUDIO_BUFFER_SIZE);
+		adi_ad1871_SubmitRxBuffer(adc_dev, adc_buffer, HAIP_ANALOG_BUFFER_SIZE);
 		output_digital();
 		adc_buffer = NULL;
 	}

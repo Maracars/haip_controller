@@ -23,29 +23,68 @@
 //DEFINITIONS
 
 /* Baud rate to be used for char echo */
-#define HAIP_BAUD_RATE           9600u
+#define HAIP_BAUD_RATE           		9600u
 
-#define HAIP_UART_BUFFER_SIZE 50
-#define HAIP_UART_DEV_NUM 0
-#define HAIP_FRAME_LENGTH_MIN 5
-#define HAIP_FRAME_LENGTH_MAX 260
+#define HAIP_UART_BUFFER_SIZE 			50
+#define HAIP_UART_DEV_NUM 				0
+#define HAIP_FRAME_LENGTH_MIN 			5
+#define HAIP_FRAME_LENGTH_MAX 			260
 
-#define HAIP_FRAME_HEADER_INDEX 0
-#define HAIP_FRAME_DEST_ID_INDEX 1
-#define HAIP_FRAME_SRC_ID_INDEX 2
-#define HAIP_FRAME_DATA_LEN_INDEX 3
+#define HAIP_FRAME_HEADER_INDEX 		0
+#define HAIP_FRAME_DEST_ID_INDEX 		1
+#define HAIP_FRAME_SRC_ID_INDEX 		2
+#define HAIP_FRAME_DATA_LEN_INDEX 		3
 
-#define HAIP_DIGITAL_INPUT_TIMEOUT 0.02
-#define HAIP_DIGITAL_INPUT_BUFFER_SIZE 500
-#define HAIP_FRAME_BUFFER_SIZE 10
-#define HAIP_AUDIO_BUFFER_SIZE 65536*2
-#define HAIP_DAC_BUFFER_SIZE 900
+#define HAIP_DIGITAL_INPUT_TIMEOUT 		0.02
+#define HAIP_DIGITAL_INPUT_BUFFER_SIZE 	500
+#define HAIP_FRAME_BUFFER_SIZE 			10
+#define HAIP_ANALOG_BUFFER_SIZE 		65536*2
+#define HAIP_DAC_BUFFER_SIZE 			900
 
-//DATA TYPES
-typedef struct haip_sync_params {
-	int phase_offset;
-	int frequency_offset;
-} haip_sync_params;
+/* Add your custom header content here */
+#define HAIP_SAMPLING_FREQ    			48000//Hz#define HAIP_CARRIER_FREQ    			6000//Hz#define HAIP_SYMBOL_FREQ        		6000//Hz#define HAIP_OVERSAMPLING_FACTOR		(SAMPLING_FREQ/SYMBOL_FREQ)#define NUMBER_OF_SYMBOLS               (FRAME*2 + HEADER)
+#define NUMBER_OF_SYMBOLS_OVERSAMPLED   (NUMBER_OF_SYMBOLS*8)
+#define NUM_COEFFS                      49
+#define NUM_SAMPLES_TX                  (NUMBER_OF_SYMBOLS_OVERSAMPLED + NUM_COEFFS)
+#define NUM_SAMPLES_RX                  (NUMBER_OF_SYMBOLS_OVERSAMPLED + NUM_COEFFS*2)
+#define FILTER_DELAY                    ((NUM_COEFFS-1)/2)
+#define SYMBOLS_16QAM					16
+#define BITS_PER_SYMBOL					4
+
+/* Haip frame structure */
+#define HAIP_FRAME_HEADER_LEN 			1
+#define HAIP_FRAME_HEADER_OFF 			1
+#define HAIP_HEADER_LEN_LEN 			3
+#define HAIP_HEADER_LEN_OFF				0
+#define HAIP_HEADER_TYPE_LEN 			2
+#define HAIP_HEADER_TYPE_OFF 			3
+#define HAIP_HEADER_CNT_LEN 			3
+#define HAIP_HEADER_CNT_OFF 			5
+#define HAIP_FRAME_DEST_LEN 			1
+#define HAIP_FRAME_ORIG_LEN 			1
+#define HAIP_FRAME_DEST_OFF 			2
+#define HAIP_FRAME_ORIG_OFF 			1
+#define HAIP_FRAME_DATA_OFF 			3
+#define HAIP_FRAME_CRC_LEN  			1
+
+#define HAIP_FRAME_DATA_MAX_LEN			7 //HAIP_HEADER_LEN_LEN^2 - 1
+#define HEADER_AND_ADDR_LEN 			HAIP_FRAME_ORIG_LEN + HAIP_FRAME_DEST_LEN + HAIP_FRAME_HEADER_LEN
+#define HAIP_FRAME_MAX_LEN 				HEADER_AND_ADDR_LEN + HAIP_FRAME_CRC_LEN + HAIP_FRAME_DATA_MAX_LEN
+
+struct haip_header_t {
+	union {
+		struct {
+			uint8_t len :HAIP_HEADER_LEN_LEN;
+			uint8_t type :HAIP_HEADER_TYPE_LEN;
+			uint8_t cnt :HAIP_HEADER_CNT_LEN;
+		};
+		uint8_t header;
+	};
+} haip_header_t;
+
+//Mathematical constant
+#define SQRT_10 						3.17
+#define SQRT_2							1.4142
 
 //Function declarations
 bool check_timeout(double last, double limit, double* new_last);

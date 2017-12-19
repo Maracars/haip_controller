@@ -5,6 +5,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../haip_commons.c \
+../haip_demodulator.c \
 ../haip_hamming_7_4_ext_coding.c \
 ../haip_modem.c \
 ../haip_tx_rx.c 
@@ -14,12 +15,14 @@ LDF_SRCS += \
 
 SRC_OBJS += \
 ./haip_commons.doj \
+./haip_demodulator.doj \
 ./haip_hamming_7_4_ext_coding.doj \
 ./haip_modem.doj \
 ./haip_tx_rx.doj 
 
 C_DEPS += \
 ./haip_commons.d \
+./haip_demodulator.d \
 ./haip_hamming_7_4_ext_coding.d \
 ./haip_modem.d \
 ./haip_tx_rx.d 

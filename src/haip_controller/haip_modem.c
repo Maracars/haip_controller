@@ -51,10 +51,10 @@ section ("sdram0") unsigned char entrada_test[BUFFER_SIZE];
 
 /* Audio data buffers */
 #pragma align 4
-section ("sdram0") uint8_t analog_rx_buffer_1[HAIP_AUDIO_BUFFER_SIZE];
-section ("sdram0") uint8_t analog_rx_buffer_2[HAIP_AUDIO_BUFFER_SIZE];
-section ("sdram0") uint8_t analog_tx_buffer_1[HAIP_AUDIO_BUFFER_SIZE];
-section ("sdram0") uint8_t analog_tx_buffer_2[HAIP_AUDIO_BUFFER_SIZE];
+section ("sdram0") uint8_t analog_rx_buffer_1[HAIP_ANALOG_BUFFER_SIZE];
+section ("sdram0") uint8_t analog_rx_buffer_2[HAIP_ANALOG_BUFFER_SIZE];
+section ("sdram0") uint8_t analog_tx_buffer_1[HAIP_ANALOG_BUFFER_SIZE];
+section ("sdram0") uint8_t analog_tx_buffer_2[HAIP_ANALOG_BUFFER_SIZE];
 
 /* Rx and Tx buffers */
 char buffer_tx_1[BUFFER_SIZE];
@@ -178,10 +178,10 @@ bool initialize_peripherals() {
 	adi_initComponents();
 
 	/* Clear audio input and output buffers */
-	memset(analog_rx_buffer_1, 0, HAIP_AUDIO_BUFFER_SIZE);
-	memset(analog_rx_buffer_2, 0, HAIP_AUDIO_BUFFER_SIZE);
-	memset(analog_tx_buffer_1, 0, HAIP_AUDIO_BUFFER_SIZE);
-	memset(analog_tx_buffer_2, 0, HAIP_AUDIO_BUFFER_SIZE);
+	memset(analog_rx_buffer_1, 0, HAIP_ANALOG_BUFFER_SIZE);
+	memset(analog_rx_buffer_2, 0, HAIP_ANALOG_BUFFER_SIZE);
+	memset(analog_tx_buffer_1, 0, HAIP_ANALOG_BUFFER_SIZE);
+	memset(analog_tx_buffer_2, 0, HAIP_ANALOG_BUFFER_SIZE);
 
 	/* Initialize power service */
 	result = (uint32_t) adi_pwr_Init(PROC_CLOCK_IN, PROC_MAX_CORE_CLOCK,
@@ -337,7 +337,7 @@ static uint32_t init_1854_dac(void) {
 	/* Submit Audio buffer 1 to AD1854 DAC */
 	eResult = adi_ad1854_SubmitTxBuffer(h_adi_1854_dac_device,
 			&analog_tx_buffer_1,
-			HAIP_AUDIO_BUFFER_SIZE);
+			HAIP_ANALOG_BUFFER_SIZE);
 
 	/* IF (Failed) */
 	if (eResult != ADI_AD1854_SUCCESS) {
@@ -348,7 +348,7 @@ static uint32_t init_1854_dac(void) {
 	/* Submit Audio buffer 2 to AD1854 DAC */
 	eResult = adi_ad1854_SubmitTxBuffer(h_adi_1854_dac_device,
 			&analog_tx_buffer_2,
-			HAIP_AUDIO_BUFFER_SIZE);
+			HAIP_ANALOG_BUFFER_SIZE);
 
 	/* IF (Failed) */
 	if (eResult != ADI_AD1854_SUCCESS) {
@@ -406,7 +406,7 @@ static uint32_t init_1871_adc(void) {
 	/* Submit Audio buffer 1 to AD1871 ADC */
 	eResult = adi_ad1871_SubmitRxBuffer(h_adi_1871_adc_device,
 			&analog_rx_buffer_1,
-			HAIP_AUDIO_BUFFER_SIZE);
+			HAIP_ANALOG_BUFFER_SIZE);
 
 	/* IF (Failed) */
 	if (eResult != ADI_AD1871_SUCCESS) {
@@ -417,7 +417,7 @@ static uint32_t init_1871_adc(void) {
 	/* Submit Audio buffer 2 to AD1871 ADC */
 	eResult = adi_ad1871_SubmitRxBuffer(h_adi_1871_adc_device,
 			&analog_rx_buffer_2,
-			HAIP_AUDIO_BUFFER_SIZE);
+			HAIP_ANALOG_BUFFER_SIZE);
 
 	/* IF (Failed) */
 	if (eResult != ADI_AD1871_SUCCESS) {
