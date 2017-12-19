@@ -158,7 +158,7 @@ void output_analog() {
 
 	if (dac_is_free()) {
 		if (frame_count >= 1) {
-			//modulate_frame(frame_buffer[0], output_buffer);
+			modulate_frame(digital_input_buffer, output_buffer);
 			send_dac(true);
 			frame_count = 0;
 		} else {
@@ -180,14 +180,15 @@ void send_dac(bool do_send) {
 	result = adi_ad1854_GetTxBuffer(dac_dev, &dac_buffer);
 	//fract32* fr32_buffer = (fract32*) dac_buffer;
 	if (do_send) {
-		for (i = 0; i < AUDIO_BUFFER_SIZE*2; i++) {
+		/*for (i = 0; i < AUDIO_BUFFER_SIZE*2; i++) {
 			if(i>=UART_BUFFER_SIZE && i%UART_BUFFER_SIZE == 0){
 				j=0;
 			}
 			tmp_buffer[i] = digital_input_buffer[j];
 			j++;
-		}
-		//memcpy(dac_buffer, digital_input_buffer, AUDIO_BUFFER_SIZE);
+		}*/
+		memcpy(tmp_buffer, entrada_dac, AUDIO_BUFFER_SIZE);
+		contar++;
 	} else {
 
 		for (i = 0; i < AUDIO_BUFFER_SIZE*2; i++) {
@@ -206,8 +207,9 @@ void output_digital(void) {
 
 	adi_uart_IsTxBufferAvailable(uart_dev, &uart_tx_free);
 	if (uart_tx_free) {
+
 		adi_uart_GetTxBuffer(uart_dev, &uart_tx_buffer);
-		memcpy(uart_tx_buffer, adc_buffer, UART_BUFFER_SIZE);
+		memcpy(uart_tx_buffer, dac_buffer, UART_BUFFER_SIZE);
 		adi_uart_SubmitTxBuffer(uart_dev, uart_tx_buffer, UART_BUFFER_SIZE); //envia
 	}
 }
