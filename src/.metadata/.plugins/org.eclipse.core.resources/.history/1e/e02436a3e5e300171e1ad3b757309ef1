@@ -1,0 +1,450 @@
+/*********************************************************************************
+
+ Copyright(c) 2012 Analog Devices, Inc. All Rights Reserved.
+
+ This software is proprietary and confidential.  By using this software you agree
+ to the terms of the associated Analog Devices License Agreement.
+
+ *********************************************************************************/
+/*!
+ * @file      AudioLoopback.c
+ * @brief     Audio loopback example using AD1871 ADC and AD1854 DAC.
+ * @version:  $Revision: 9599 $
+ * @date:     $Date: 2012-06-26 02:46:24 -0400 (Tue, 26 Jun 2012) $
+ *
+ * @details
+ *            This is the primary source file for audio loopback example using
+ *            AD1871 Stereo Audio ADC and AD1854 Stereo Audio DAC drivers.
+ *
+ */
+
+/*=============  I N C L U D E S   =============*/
+
+/* Audio loopback example includes */
+#include "AudioLoopback.h"
+/* Managed drivers and/or services include */
+#include "system/adi_initialize.h"
+#include <filter.h>
+#include <fract2float_conv.h>
+#include "declaraciones.h"
+
+#include <blackfin.h>
+#include <stdio.h>
+#include <services\int\adi_int.h>
+#include <drivers\uart\adi_uart.h>
+#include <services\pwr\adi_pwr.h>
+#include <string.h>
+
+#include "HaipCommons.h"
+#include "HaipModulator.h"
+#include "HaipTxRx.h"
+
+/* ADI initialization header */
+#include "system/adi_initialize.h"
+
+/*Functions*/
+void initialize_peripherals(void);
+void probar_uart(char* buffer);
+void finalize_peropherals(void);
+
+/* UART Handle */
+static ADI_UART_HANDLE hDevice;
+static ADI_UART_RESULT respuestaTx;
+
+/*Return code*/
+uint32_t Result;
+
+/*=============  D A T A  =============*/
+
+//Variables UART
+section ("sdram0") unsigned char trama_entrada_mod[CARACTERES_PRUEBA + BUFFER_SIZE]; // = {"actualizar"};
+section ("sdram0") unsigned char trama_salida_demod[BUFFER_SIZE];
+section ("sdram0") unsigned char entrada_test[BUFFER_SIZE];
+
+/* Handle to the AD1871 device instance */
+static ADI_AD1871_HANDLE hAd1871Adc;
+/* Handle to the AD1854 device instance */
+static ADI_AD1854_HANDLE hAd1854Dac;
+
+/* Memory required to handle an AD1871 device instance */
+static uint8_t Ad1871AdcMemory[ADI_AD1871_MEMORY_SIZE];
+/* Memory required to handle an AD1854 device instance */
+static uint8_t Ad1854DacMemory[ADI_AD1854_MEMORY_SIZE];
+
+/*=============  L O C A L    F U N C T I O N S  =============*/
+
+/* Opens and configures AD1871 ADC driver */
+static uint32_t InitAd1871Adc(void);
+/* Opens and configures AD1854 ADC driver */
+static uint32_t InitAd1854Dac(void);
+
+/* Audio data buffers */
+#pragma align 4
+section ("sdram0") uint8_t analog_rx_buffer_1[HAIP_AUDIO_BUFFER_SIZE];
+section ("sdram0") uint8_t RxAudioBuf2[HAIP_AUDIO_BUFFER_SIZE];
+section ("sdram0") uint8_t TxAudioBuf1[HAIP_AUDIO_BUFFER_SIZE];
+section ("sdram0") uint8_t TxAudioBuf2[HAIP_AUDIO_BUFFER_SIZE];
+
+/* Rx and Tx buffers */
+char buffer_tx_1[BUFFER_SIZE];
+char buffer_tx_2[BUFFER_SIZE];
+char buffer_rx_1[BUFFER_SIZE];
+char buffer_rx_2[BUFFER_SIZE];
+
+/*=============  C O D E  =============*/
+
+/* Memory required for operating UART in dma mode */
+static uint8_t reserved_uart_memory[ADI_UART_BIDIR_DMA_MEMORY_SIZE];
+
+/*********************************************************************
+ *
+ *   Function:   main
+ *
+ *********************************************************************/
+void main(void) {
+	/* Flag which indicates whether to stop the program */
+	bool bStopFlag = false;
+
+	initialize_peripherals();
+
+	memcpy(entrada_test, "MIKE", 5);
+	probar_uart(entrada_test);
+
+	/* IF (Success) */
+	if (Result == 0) {
+		haiptxrx_init_devices(hDevice, hAd1854Dac, hAd1871Adc);
+		while (!bStopFlag) {
+			haiptxrx_iterate();
+		}
+	}
+
+	finalize_peropherals();
+
+}
+
+void probar_uart(char* buffer) {
+	char* UBufferBidali;
+	bool enviar = 0;
+
+	while (!enviar) {
+		respuestaTx = adi_uart_IsTxBufferAvailable(hDevice, &enviar);
+	}
+	respuestaTx = adi_uart_GetTxBuffer(hDevice, &UBufferBidali);
+	memcpy(UBufferBidali, buffer, BUFFER_SIZE);
+	respuestaTx = adi_uart_SubmitTxBuffer(hDevice, UBufferBidali, BUFFER_SIZE); //envia
+}
+
+void finalize_peropherals() {
+
+	/* IF (Success) */
+	if (Result == 0) {
+		/* Disable AD1854 DAC dataflow */
+		Result = adi_ad1854_Enable(hAd1854Dac, false);
+
+		/* IF (Failure) */
+		if (Result) {
+			DEBUG_MSG2("Failed to disable AD1854 DAC dataflow", Result);
+		}
+	}
+
+	/* IF (Success) */
+	if (Result == 0) {
+		/* Disable AD1871 ADC dataflow */
+		Result = adi_ad1871_Enable(hAd1871Adc, false);
+
+		/* IF (Failure) */
+		if (Result) {
+			DEBUG_MSG2("Failed to disable AD1871 ADC dataflow", Result);
+		}
+	}
+
+	/* IF (Success) */
+	if (Result == 0) {
+		/* Close AD1854 DAC instance */
+		Result = adi_ad1854_Close(hAd1854Dac);
+
+		/* IF (Failure) */
+		if (Result) {
+			DEBUG_MSG2("Failed to close AD1854 DAC instance", Result);
+		}
+	}
+
+	/* IF (Success) */
+	if (Result == 0) {
+		/* Close AD1871 ADC instance */
+		Result = adi_ad1871_Close(hAd1871Adc);
+
+		/* IF (Failure) */
+		if (Result) {
+			DEBUG_MSG2("Failed to close AD1871 ADC instance", Result);
+		}
+	}
+
+	/* IF (Success) */
+	if (Result == 0) {
+		printf("All Done\n");
+	}
+	/* ELSE (Failure) */
+	else {
+		printf("Failed\n");
+	}
+
+}
+
+/*Initializes the system, UART communication and ADC/DAC devices*/
+void initialize_peripherals() {
+
+	unsigned int i;
+	ADI_UART_RESULT eResult;
+
+	/* Initialize managed drivers and/or services */
+	adi_initComponents();
+
+	/* Clear audio input and output buffers */
+	memset(analog_rx_buffer_1, 0, BUFFER_SIZE_CONV);
+	memset(RxAudioBuf2, 0, BUFFER_SIZE_CONV);
+	memset(TxAudioBuf1, 0, BUFFER_SIZE_CONV);
+	memset(TxAudioBuf2, 0, BUFFER_SIZE_CONV);
+
+	/* Initialize power service */
+	Result = (uint32_t) adi_pwr_Init(PROC_CLOCK_IN, PROC_MAX_CORE_CLOCK,
+			PROC_MAX_SYS_CLOCK, PROC_MIN_VCO_CLOCK);
+
+	/* IF (Failure) */
+	if (Result) {
+		DEBUG_MSG1("Failed to initialize Power service\n");
+	}
+
+	/* IF (Success) */
+	if (Result == 0) {
+		/* Set the required core clock and system clock */
+		Result = (uint32_t) adi_pwr_SetFreq(PROC_REQ_CORE_CLOCK,
+				PROC_REQ_SYS_CLOCK);
+
+		/* IF (Failure) */
+		if (Result) {
+			DEBUG_MSG1("Failed to initialize Power service\n");
+		}
+	}
+
+	//UART initialization
+	/* Open UART driver */
+	eResult = adi_uart_Open(UART_DEVICE_NUM, ADI_UART_DIR_BIDIRECTION,
+			reserved_uart_memory, ADI_UART_BIDIR_DMA_MEMORY_SIZE, &hDevice);
+	if (eResult != ADI_UART_SUCCESS) {
+		printf("failure\n");
+	}
+
+	/* Set UART Baud Rate */
+	eResult = adi_uart_SetBaudRate(hDevice, HAIP_BAUD_RATE);
+	if (eResult != ADI_UART_SUCCESS) {
+			printf("failure\n");
+		}
+
+	/* Configure  UART device with NO-PARITY, ONE STOP BIT and 8bit word length. */
+	eResult = adi_uart_SetConfiguration(hDevice, ADI_UART_NO_PARITY,
+			ADI_UART_ONE_STOPBIT, ADI_UART_WORDLEN_8BITS);
+	if (eResult != ADI_UART_SUCCESS) {
+			printf("failure\n");
+		}
+
+	/* Enable the DMA associated with UART if UART is expeced to work with DMA mode */
+	eResult = adi_uart_EnableDMAMode(hDevice, true);
+	if (eResult != ADI_UART_SUCCESS) {
+			printf("failure\n");
+		}
+
+	//printf("Setup terminal on PC as described in Readme file. \n\n");
+
+	adi_uart_SubmitTxBuffer(hDevice, buffer_tx_1, BUFFER_SIZE);
+	adi_uart_SubmitRxBuffer(hDevice, buffer_tx_2, BUFFER_SIZE);
+	adi_uart_SubmitTxBuffer(hDevice, buffer_rx_1, BUFFER_SIZE);
+	adi_uart_SubmitRxBuffer(hDevice, buffer_rx_2, BUFFER_SIZE);
+
+	eResult = adi_uart_EnableTx(hDevice, true);
+	eResult = adi_uart_EnableRx(hDevice, true);
+
+	/* IF (Success) */
+	if (Result == 0) {
+		/* Open and configure AD1871 ADC device instance */
+		Result = InitAd1871Adc();
+	} else {
+		printf("Error initing uart");
+	}
+
+	/* IF (Success) */
+	if (Result == 0) {
+		/* Open and configure AD1854 DAC device instance */
+		Result = InitAd1854Dac();
+	} else {
+		printf("Error initing ADC");
+	}
+
+	// IF (Success)
+	if (Result == 0) {
+		// Enable AD1854 DAC dataflow
+		Result = adi_ad1854_Enable(hAd1854Dac, true);
+
+		// IF (Failure)
+		if (Result) {
+			DEBUG_MSG2("Failed to enable AD1854 DAC dataflow", Result);
+		}
+	} else {
+		printf(" error initing DAC");
+	}
+
+	// IF (Success)
+	if (Result == 0) {
+		// Enable AD1871 ADC dataflow
+		Result = adi_ad1871_Enable(hAd1871Adc, true);
+
+		// IF (Failure)
+		if (Result) {
+			DEBUG_MSG2("Failed to enable AD1871 ADC dataflow", Result);
+		}
+	} else {
+		printf("error enabling DAC");
+	}
+
+	if (Result != 0)
+		printf("Error enabling ADC");
+
+}
+
+/*
+ * Opens and initializes AD1854 DAC device instance.
+ *
+ * Parameters
+ *  None
+ *
+ * Returns
+ *  0 if success, other values for error
+ *
+ */
+static uint32_t InitAd1854Dac(void) {
+	/* Return code */
+	ADI_AD1854_RESULT eResult;
+
+	/* Open AD1854 instance */
+	eResult = adi_ad1854_Open(AD1854_DEV_NUM, &Ad1854DacMemory,
+	ADI_AD1854_MEMORY_SIZE, &hAd1854Dac);
+
+	/* IF (Failed) */
+	if (eResult != ADI_AD1854_SUCCESS) {
+		DEBUG_MSG2("Failed to open AD1854 DAC instance", eResult);
+		return ((uint32_t) eResult);
+	}
+
+	/* Reset AD1854 */
+	eResult = adi_ad1854_HwReset(hAd1854Dac, AD1854_RESET_PORT,
+			AD1854_RESET_PIN);
+
+	/* IF (Failed) */
+	if (eResult != ADI_AD1854_SUCCESS) {
+		DEBUG_MSG2("Failed to reset AD1854 DAC instance", eResult);
+		return ((uint32_t) eResult);
+	}
+
+	/* Set SPORT device number, External clock source (SPORT as Slave) */
+	eResult = adi_ad1854_SetSportDevice(hAd1854Dac, AD1854_SPORT_DEV_NUM, true);
+
+	/* IF (Failed) */
+	if (eResult != ADI_AD1854_SUCCESS) {
+		DEBUG_MSG2("Failed to set AD1854 DAC SPORT device instance", eResult);
+		return ((uint32_t) eResult);
+	}
+
+	/* Submit Audio buffer 1 to AD1854 DAC */
+	eResult = adi_ad1854_SubmitTxBuffer(hAd1854Dac, &TxAudioBuf1,
+			BUFFER_SIZE_CONV);
+
+	/* IF (Failed) */
+	if (eResult != ADI_AD1854_SUCCESS) {
+		DEBUG_MSG2("Failed to submit Audio buffer 1 to AD1854 DAC", eResult);
+		return ((uint32_t) eResult);
+	}
+
+	/* Submit Audio buffer 2 to AD1854 DAC */
+	eResult = adi_ad1854_SubmitTxBuffer(hAd1854Dac, &TxAudioBuf2,
+			BUFFER_SIZE_CONV);
+
+	/* IF (Failed) */
+	if (eResult != ADI_AD1854_SUCCESS) {
+		DEBUG_MSG2("Failed to submit Audio buffer 2 to AD1854 DAC", eResult);
+	}
+
+	/* Return */
+	return ((uint32_t) eResult);
+}
+
+/*
+ * Opens and initializes AD1871 ADC device instance.
+ *
+ * Parameters
+ *  None
+ *
+ * Returns
+ *  0 if success, other values for error
+ *
+ */
+static uint32_t InitAd1871Adc(void) {
+	/* Return code */
+	ADI_AD1871_RESULT eResult;
+
+	/* Open AD1871 instance */
+	eResult = adi_ad1871_Open(AD1871_DEV_NUM, &Ad1871AdcMemory,
+	ADI_AD1871_MEMORY_SIZE, &hAd1871Adc);
+
+	/* IF (Failed) */
+	if (eResult != ADI_AD1871_SUCCESS) {
+		DEBUG_MSG2("Failed to open AD1871 ADC instance", eResult);
+		return ((uint32_t) eResult);
+	}
+
+	/* Reset AD1871 */
+	eResult = adi_ad1871_HwReset(hAd1871Adc, AD1871_RESET_PORT,
+			AD1871_RESET_PIN);
+
+	/* IF (Failed) */
+	if (eResult != ADI_AD1871_SUCCESS) {
+		DEBUG_MSG2("Failed to reset AD1871 ADC instance", eResult);
+		return ((uint32_t) eResult);
+	}
+
+	/* Set SPORT device number, AD1871 as Master (SPORT as Slave) */
+	eResult = adi_ad1871_SetSportDevice(hAd1871Adc, AD1871_SPORT_DEV_NUM, true);
+
+	/* IF (Failed) */
+	if (eResult != ADI_AD1871_SUCCESS) {
+		DEBUG_MSG2("Failed to set AD1871 ADC SPORT device instance", eResult);
+		return ((uint32_t) eResult);
+	}
+
+	/* Submit Audio buffer 1 to AD1871 ADC */
+	eResult = adi_ad1871_SubmitRxBuffer(hAd1871Adc, &analog_rx_buffer_1,
+			BUFFER_SIZE_CONV);
+
+	/* IF (Failed) */
+	if (eResult != ADI_AD1871_SUCCESS) {
+		DEBUG_MSG2("Failed to submit Audio buffer 1 to AD1871 ADC", eResult);
+		return ((uint32_t) eResult);
+	}
+
+	/* Submit Audio buffer 2 to AD1871 ADC */
+	eResult = adi_ad1871_SubmitRxBuffer(hAd1871Adc, &RxAudioBuf2,
+			BUFFER_SIZE_CONV);
+
+	/* IF (Failed) */
+	if (eResult != ADI_AD1871_SUCCESS) {
+		DEBUG_MSG2("Failed to submit Audio buffer 2 to AD1871 ADC", eResult);
+	}
+
+	/* Return */
+	return ((uint32_t) eResult);
+}
+
+/*****/
+
+/*
+ ** EOF
+ */
