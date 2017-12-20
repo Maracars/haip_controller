@@ -1,0 +1,20 @@
+<?xml version="1.0" standalone="no"?>
+<?xml-stylesheet type="text/xsl" href="file:///C:/Analog Devices/CrossCore Embedded Studio 2.1.0/System/linker_log.xsl"?>
+<DOCUMENT gen_time='Wed Dec 20 11:57:15 2017
+'>
+<MSG id='0570F2A0' mid='li1050' type='Error' >
+<TEXT><![CDATA['_haip_header_t' ('haip_header_t'): Multiply defined symbol in processor 'p0'.
+        Initial definition:     '.\haip_commons.doj'
+        Attempted redefinition: '.\haip_modem.doj']]></TEXT>
+</MSG>
+<MSG id='056B8E60' mid='li1050' type='Error' >
+<TEXT><![CDATA['_haip_header_t' ('haip_header_t'): Multiply defined symbol in processor 'p0'.
+        Initial definition:     '.\haip_commons.doj'
+        Attempted redefinition: '.\haip_modulator.doj']]></TEXT>
+</MSG>
+<MSG id='068B8670' mid='li1050' type='Error' >
+<TEXT><![CDATA['_haip_header_t' ('haip_header_t'): Multiply defined symbol in processor 'p0'.
+        Initial definition:     '.\haip_commons.doj'
+        Attempted redefinition: '.\haip_tx_rx.doj']]></TEXT>
+</MSG>
+</DOCUMENT>

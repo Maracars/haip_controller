@@ -1,0 +1,14 @@
+/*
+ * HaipModulator.h
+ *
+ *  Created on: 11/12/2017
+ *      Author: joseba
+ */
+
+#ifndef HAIPMODULATOR_H_
+#define HAIPMODULATOR_H_
+
+#define PREAMBLE_LENGTH 8
+fract32* modulate_frame(unsigned char* frame_buffer, int frame_length);
+
+#endif /* HAIPMODULATOR_H_ */
