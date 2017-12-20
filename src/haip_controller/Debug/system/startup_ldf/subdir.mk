@@ -40,7 +40,7 @@ system/startup_ldf/%.doj: ../system/startup_ldf/%.c
 system/startup_ldf/%.doj: ../system/startup_ldf/%.s
 	@echo 'Building file: $<'
 	@echo 'Invoking: CrossCore Blackfin Assembler'
-	easmblkfn.exe -file-attr ProjectName="haip_controller" -proc ADSP-BF537 -si-revision any -g -D_DEBUG -i"C:\Users\joseb\Desktop\POPBL5T\haip_controller\src\haip_controller\system" -i"C:/Analog Devices/ADSP-BF537_EZKIT-Rel1.0.0/BF537_EZ-KIT_Lite/Blackfin/include" -gnu-style-dependencies -MM -Mo "system/startup_ldf/app_startup.d" -o "$@" "$<"
+	easmblkfn.exe -file-attr ProjectName="haip_controller" -proc ADSP-BF537 -si-revision any -g -D_DEBUG -i"C:\Users\joseb\Desktop\POPBL5T\haip_controller\src\haip_controller\system" -i"/Blackfin/include" -gnu-style-dependencies -MM -Mo "system/startup_ldf/app_startup.d" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
