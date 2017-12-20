@@ -18,7 +18,7 @@
 					<folderInfo id="blackfin.toolchain.configuration.debug.1227652869." name="/" resourcePath="">
 						<toolChain id="blackfin.toolchain.debug.967445661" isAbstract="false" name="CrossCore Blackfin Toolchain" superClass="blackfin.toolchain" targetTool="blackfin.toolchain.linker">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="blackfin.platform.51269742" name="CrossCore Blackfin Target Platform" osList="all" superClass="blackfin.platform"/>
-							<builder buildPath="${workspace_loc:/AudioLoopback/Debug}" id="blackfin.toolchain.builder.526378258" keepEnvironmentInBuildfile="false" name="CrossCore Blackfin Builder" superClass="blackfin.toolchain.builder"/>
+							<builder autoBuildTarget="all" buildPath="${workspace_loc:/AudioLoopback/Debug}" cleanBuildTarget="clean" enableAutoBuild="false" enableCleanBuild="true" enabledIncrementalBuild="true" id="blackfin.toolchain.builder.526378258" incrementalBuildTarget="all" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CrossCore Blackfin Builder" parallelBuildOn="false" superClass="blackfin.toolchain.builder"/>
 							<tool id="blackfin.toolchain.assembler.859857409" name="CrossCore Blackfin Assembler" superClass="blackfin.toolchain.assembler">
 								<option id="assembler.option.debugcode.1212940349" name="Generate debug information (-g)" superClass="assembler.option.debugcode"/>
 								<option id="assembler.option.proc.750369323" name="-proc" superClass="assembler.option.proc" value=" ADSP-BF537" valueType="string"/>

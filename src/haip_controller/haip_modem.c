@@ -20,6 +20,7 @@
 #include "haip_commons.h"
 #include "haip_modulator.h"
 #include "haip_tx_rx.h"
+#include "haip_16QAM_mapping.h"
 
 /* ADI initialization header */
 #include "system/adi_initialize.h"
@@ -77,7 +78,7 @@ static uint8_t reserved_uart_memory[ADI_UART_BIDIR_DMA_MEMORY_SIZE];
 void main(void) {
 	/* Flag which indicates whether to stop the program */
 	bool stop_flag = false;
-
+	haip_init_const();
 	bool result = initialize_peripherals();
 
 	memcpy(entrada_test, "MIKE", 5);
