@@ -8,6 +8,15 @@
 #ifndef HAIPMODULATOR_H_
 #define HAIPMODULATOR_H_
 
-void modulate_frame(unsigned char* frame_buffer, fract32* output_buffer);
+#include <fract_typedef.h>
+fract32* modulate_frame(unsigned char* frame_buffer, int frame_length);
+
+void addPreamble(void);
+void mapper(unsigned char* frame_buffer, int frame_symbols);
+void upsample(int frame_symbols);
+void filter(void);
+void oscilate(void);
+void addHeader(void);
+
 
 #endif /* HAIPMODULATOR_H_ */
