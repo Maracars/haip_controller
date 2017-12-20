@@ -7,7 +7,7 @@
 #include "haip_commons.h"
 #include "haip_modulator.h"
 #include "haip_modem.h"
-#include "filter_fr32.h"
+#include "haip_srcos_filter_fr32.h"
 #include <filter.h>
 
 //Need to be normalized
@@ -34,9 +34,9 @@ fir_state_fr32 state_real;
 fir_state_fr32 state_imag;
 
 #pragma section("L1_data_b")
-fract32 delay_real[HAIP_NUM_COEFFS];
+fract32 delay_real[HAIP_SRCOS_COEFF_NUM];
 #pragma section("L1_data_b")
-fract32 delay_imag[HAIP_NUM_COEFFS];
+fract32 delay_imag[HAIP_SRCOS_COEFF_NUM];
 
 fract32* modulate_frame(unsigned char* frame_buffer, int frame_length) {
 	int frame_symbols = frame_length * HAIP_SYMBOLS_PER_BYTE;
@@ -51,7 +51,7 @@ fract32* modulate_frame(unsigned char* frame_buffer, int frame_length) {
 void addPreamble() {
 	int i = 0;
 
-	for (i = 0; i < HAIP_PREAMBLE_LENGTH; i++) {
+	for (i = 0; i < HAIP_PREAMBLE_SYMBOLS; i++) {
 		frame_symbols_real[i] = float_to_fr32(preamble_real[i]);
 		frame_symbols_imag[i] = float_to_fr32(preamble_imag[i]);
 	}
@@ -61,7 +61,7 @@ void mapper(unsigned char* frame_buffer, int frame_length) {
 	int i = 0;
 	int numDecimal = 0;
 
-	for (i = HAIP_PREAMBLE_LENGTH; i < frame_length; i++) {
+	for (i = HAIP_PREAMBLE_SYMBOLS; i < frame_length; i++) {
 		if (i % 2 != 0)
 			numDecimal = frame_buffer[i / 2] & 0xF;
 		else
@@ -76,7 +76,7 @@ void mapper(unsigned char* frame_buffer, int frame_length) {
 
 void upsample(int frame_length) {
 	int i = 0;
-	int oversampled_length = (frame_length + HAIP_PREAMBLE_LENGTH)
+	int oversampled_length = (frame_length + HAIP_PREAMBLE_SYMBOLS)
 			* HAIP_OVERSAMPLING_FACTOR;
 	for (i = 0; i < HAIP_TX_PACKET_LENGTH; i++) {
 
@@ -106,13 +106,13 @@ void upsample(int frame_length) {
 void filter() {
 	int i = 0;
 
-	for (i = 0; i < HAIP_NUM_COEFFS; i++) {
+	for (i = 0; i < HAIP_SRCOS_COEFF_NUM; i++) {
 		delay_real[i] = 0;
 		delay_imag[i] = 0;
 	}
 
-	fir_init(state_real, filter_fr32, delay_real, HAIP_NUM_COEFFS, 0);
-	fir_init(state_imag, filter_fr32, delay_imag, HAIP_NUM_COEFFS, 0);
+	fir_init(state_real, haip_srcos_fir_fil_coeffs_fr32, delay_real, HAIP_SRCOS_COEFF_NUM, 0);
+	fir_init(state_imag, haip_srcos_fir_fil_coeffs_fr32, delay_imag, HAIP_SRCOS_COEFF_NUM, 0);
 
 	//Filters the signal
 	//Kontuz, iraetari mikelek esan dotzen zeozer de que tiene que ser el length del data + los coeficientes
