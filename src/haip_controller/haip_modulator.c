@@ -45,7 +45,7 @@ fract32 delay_imag[HAIP_SRCOS_COEFF_NUM];
 
 fract32* modulate_frame(unsigned char* frame_buffer, int frame_length) {
 	int frame_symbols = frame_length * HAIP_SYMBOLS_PER_BYTE;
-	haip_hamming_7_4_ext_code(frame_buffer,frame_code, frame_symbols);
+	//haip_hamming_7_4_ext_code(frame_buffer,frame_code, frame_symbols);
 	addPreamble();
 	mapper(frame_code, frame_symbols);
 	upsample(frame_symbols);
@@ -58,8 +58,8 @@ void addPreamble() {
 	int i = 0;
 
 	for (i = 0; i < HAIP_PREAMBLE_SYMBOLS; i++) {
-		frame_symbols_real[i] = float_to_fr32(preamble_real[i]);
-		frame_symbols_imag[i] = float_to_fr32(preamble_imag[i]);
+		frame_symbols_real[i] = float_to_fr32(preamble_real[i]/SQRT_2);
+		frame_symbols_imag[i] = float_to_fr32(preamble_imag[i]/SQRT_2);
 	}
 }
 
