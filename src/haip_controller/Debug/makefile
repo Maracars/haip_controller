@@ -100,7 +100,7 @@ all: haip_controller.dxe
 haip_controller.dxe: $(LDF_SRCS) $(SRC_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: CrossCore Blackfin Linker'
-	ccblkfn.exe -proc ADSP-BF537 -si-revision any -TC:/Users/joseb/Desktop/POPBL5T/haip_controller/src/haip_controller/system/startup_ldf/app.ldf -no-mem -LC:/Users/joseb/Desktop/POPBL5T/haip_controller/src/haip_controller/Debug/system/startup_ldf -flags-link -MDDEBUG -flags-link -e -flags-link -MDUSE_CACHE -o haip_controller.dxe $(SRC_OBJS) $(LDF_SRCS)  -flags-link -od,.\.
+	ccblkfn.exe -proc ADSP-BF537 -si-revision any -TE:/ander/Desktop/Clase/POPBL5/haip_controller/src/haip_controller/system/startup_ldf/app.ldf -no-mem -LE:/ander/Desktop/Clase/POPBL5/haip_controller/src/haip_controller/Debug/system/startup_ldf -flags-link -MDDEBUG -flags-link -e -flags-link -MDUSE_CACHE -o haip_controller.dxe $(SRC_OBJS) $(LDF_SRCS)  -flags-link -od,.\.
 	@echo 'Finished building target: $@'
 	@echo ' '
 

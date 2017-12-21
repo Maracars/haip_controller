@@ -43,7 +43,7 @@
 								<option id="compiler.option.additionaldirectories.46872114" name="Additional include directories (-I):" superClass="compiler.option.additionaldirectories" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/system}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${COM_ANALOG_CROSSCORE_ADDINS_BF537_EZKIT_LITE_1_0_0_LOC}/Blackfin/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Analog Devices\CrossCore Embedded Studio 1.0.2\Blackfin\lib\src\libdsp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Analog Devices\CrossCore Embedded Studio 2.1.0\Blackfin\lib\src\libdsp&quot;"/>
 								</option>
 								<option id="blackfin.compiler.option.cplbenable.20257643" name="CPLBs are enabled (-cplbs)" superClass="blackfin.compiler.option.cplbenable" value="true" valueType="boolean"/>
 								<option id="blackfin.compiler.option.sdram0inuse.992018185" name="SDRAM Bank 0 is in use (-sdram)" superClass="blackfin.compiler.option.sdram0inuse" value="true" valueType="boolean"/>
