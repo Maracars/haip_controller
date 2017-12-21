@@ -8,6 +8,8 @@
 #include "haip_modulator.h"
 #include "haip_modem.h"
 #include "haip_srcos_filter_fr32.h"
+#include "haip_16QAM_mapping.h"
+#include "haip_hamming_7_4_ext_coding.h"
 #include <filter.h>
 
 //Need to be normalized
@@ -18,6 +20,8 @@ segment ("sdram0") float sin_modulator_6KHz[] = { 0, 0.7071, 1, 0.7071, 0,
 		-0.7071, -1, -0.7071 };
 segment ("sdram0") float cos_modulator_6KHz[] = { 1, 0.7071, 0, -0.7071, -1,
 		-0.7071, 0, 0.7071 };
+
+segment ("sdram0") unsigned char frame_code[HAIP_PACKET_LENGTH];
 
 segment ("sdram0") fract32 frame_symbols_real[HAIP_PACKET_LENGTH];
 segment ("sdram0") fract32 frame_symbols_imag[HAIP_PACKET_LENGTH];
@@ -30,6 +34,7 @@ segment ("sdram0") fract32 filtered_real_symbols[HAIP_TX_PACKET_LENGTH];
 segment ("sdram0") fract32 filtered_imag_symbols[HAIP_TX_PACKET_LENGTH];
 segment ("sdram0") fract32 modulated_signal[HAIP_TX_PACKET_LENGTH];
 
+
 fir_state_fr32 state_real;
 fir_state_fr32 state_imag;
 
@@ -40,8 +45,9 @@ fract32 delay_imag[HAIP_SRCOS_COEFF_NUM];
 
 fract32* modulate_frame(unsigned char* frame_buffer, int frame_length) {
 	int frame_symbols = frame_length * HAIP_SYMBOLS_PER_BYTE;
+	haip_hamming_7_4_ext_code(frame_buffer,frame_code, frame_symbols);
 	addPreamble();
-	mapper(frame_buffer, frame_symbols);
+	mapper(frame_code, frame_symbols);
 	upsample(frame_symbols);
 	filter();
 	oscilate();
@@ -67,9 +73,8 @@ void mapper(unsigned char* frame_buffer, int frame_length) {
 		else
 			numDecimal = ((frame_buffer[i / 2] >> 4) & 0xF);
 
-		//Konstelazioa mapper.h-an definidutekoan deskomentau
-		//frame_symbols_imag[i] = constelation_imag[numDecimal];
-		//frame_symbols_real[i] = constelation_real[numDecimal];
+		frame_symbols_real[i] = haip_ideal_const[numDecimal][0];
+		frame_symbols_imag[i] = haip_ideal_const[numDecimal][1];
 
 	}
 }
@@ -111,22 +116,22 @@ void filter() {
 		delay_imag[i] = 0;
 	}
 
-	fir_init(state_real, haip_srcos_fir_fil_coeffs_fr32, delay_real, HAIP_SRCOS_COEFF_NUM, 0);
-	fir_init(state_imag, haip_srcos_fir_fil_coeffs_fr32, delay_imag, HAIP_SRCOS_COEFF_NUM, 0);
+	fir_init(state_real, haip_srcos_fir_fil_coeffs_fr32, delay_real,
+			HAIP_SRCOS_COEFF_NUM, 0);
+	fir_init(state_imag, haip_srcos_fir_fil_coeffs_fr32, delay_imag,
+			HAIP_SRCOS_COEFF_NUM, 0);
 
 	//Filters the signal
-	//Kontuz, iraetari mikelek esan dotzen zeozer de que tiene que ser el length del data + los coeficientes
 	fir_fr32(frame_symbols_real_upsample, filtered_real_symbols,
-			HAIP_TX_PACKET_LENGTH, &state_real);
+	HAIP_TX_PACKET_LENGTH, &state_real);
 	fir_fr32(frame_symbols_imag_upsample, filtered_imag_symbols,
-			HAIP_TX_PACKET_LENGTH, &state_imag);
+	HAIP_TX_PACKET_LENGTH, &state_imag);
 
 }
 void oscilate() {
 	int i = 0;
 	float real = 0;
 	float imaginary = 0;
-
 
 	for (i = 0; i < HAIP_TX_PACKET_LENGTH; ++i) {
 		real = filtered_real_symbols[i]
