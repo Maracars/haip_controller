@@ -9,26 +9,25 @@
 #include "haip_modem.h"
 #include "haip_srcos_filter_fr32.h"
 #include <filter.h>
+#include <fract2float_conv.h>
 
 //Need to be normalized
-segment ("sdram0") float preamble_real[] = { -1, 1, -1, -1, 1, 1, -1, 1 };
-segment ("sdram0") float preamble_imag[] = { -1, 1, 1, -1, 1, -1, 1, 1 };
+segment ("sdram0") static float preamble_real[] = { -1, 1, -1, -1, 1, 1, -1, 1 };
+segment ("sdram0") static float preamble_imag[] = { -1, 1, 1, -1, 1, -1, 1, 1 };
 
-segment ("sdram0") float sin_modulator_6KHz[] = { 0, 0.7071, 1, 0.7071, 0,
-		-0.7071, -1, -0.7071 };
-segment ("sdram0") float cos_modulator_6KHz[] = { 1, 0.7071, 0, -0.7071, -1,
-		-0.7071, 0, 0.7071 };
+segment ("sdram0") static float sin_modulator_6KHz[] = { 0, 0.7071, 1, 0.7071, 0, -0.7071, -1, -0.7071 };
+segment ("sdram0") static float cos_modulator_6KHz[] = { 1, 0.7071, 0, -0.7071, -1, -0.7071, 0, 0.7071 };
 
-segment ("sdram0") fract32 frame_symbols_real[HAIP_PACKET_LENGTH];
-segment ("sdram0") fract32 frame_symbols_imag[HAIP_PACKET_LENGTH];
+segment ("sdram0") static fract32 frame_symbols_real[HAIP_PACKET_LENGTH];
+segment ("sdram0") static fract32 frame_symbols_imag[HAIP_PACKET_LENGTH];
 
-segment ("sdram0") fract32 frame_symbols_real_upsample[HAIP_TX_PACKET_LENGTH];
-segment ("sdram0") fract32 frame_symbols_imag_upsample[HAIP_TX_PACKET_LENGTH];
-segment ("sdram0") fract32 modulated_synchronization[HAIP_TX_PACKET_LENGTH];
+segment ("sdram0") static fract32 frame_symbols_real_upsample[HAIP_TX_PACKET_LENGTH];
+segment ("sdram0") static fract32 frame_symbols_imag_upsample[HAIP_TX_PACKET_LENGTH];
+segment ("sdram0") static fract32 modulated_synchronization[HAIP_TX_PACKET_LENGTH];
 
-segment ("sdram0") fract32 filtered_real_symbols[HAIP_TX_PACKET_LENGTH];
-segment ("sdram0") fract32 filtered_imag_symbols[HAIP_TX_PACKET_LENGTH];
-segment ("sdram0") fract32 modulated_signal[HAIP_TX_PACKET_LENGTH];
+segment ("sdram0") static fract32 filtered_real_symbols[HAIP_TX_PACKET_LENGTH];
+segment ("sdram0") static fract32 filtered_imag_symbols[HAIP_TX_PACKET_LENGTH];
+segment ("sdram0") static fract32 modulated_signal[HAIP_TX_PACKET_LENGTH];
 
 fir_state_fr32 state_real;
 fir_state_fr32 state_imag;
