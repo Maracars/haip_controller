@@ -15,6 +15,7 @@
 #include "haip_16QAM_mapping.h"
 
 #include "fract_typedef.h"
+#include "fract2float_conv.h"
 #include "filter.h"
 #include <math.h>
 

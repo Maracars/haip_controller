@@ -87,10 +87,15 @@ void main(void) {
 	/* Flag which indicates whether to stop the program */
 	bool stop_flag = false;
 	haip_init_const();
-	memcpy(modulated_in,"MIKE2",5);
+	modulated_in[0] = 0b00110000;
+	modulated_in[1] = 0b00000001;
+	modulated_in[2] = 0b00000000;
+	modulated_in[3] = 0b01100010;
+	modulated_in[4] = 0b11100111;
+	//memcpy(modulated_in,"MIKE2",5);
 	memcpy(modulated_out,modulate_frame(modulated_in,5),HAIP_TX_PACKET_LENGTH);
 	sync = haip_demodulate_head(modulated_out, demodulated_out);
-	length = demodulated_out[0] & 0xE0 >> 5;
+	length = (demodulated_out[0] & 0xE0) >> 5;
 	haip_demodulate_payload(modulated_out,length,sync,demodulated_out);
 	printf("ss");
 	/*bool result = initialize_peripherals();
