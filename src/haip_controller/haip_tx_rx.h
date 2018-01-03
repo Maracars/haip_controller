@@ -16,6 +16,8 @@
 /*UART driver include */
 #include <drivers\uart\adi_uart.h>
 
+#define DETECTION_THRESHOLD 		1 //TODO: DEFINIR VALOR
+#define INIT_SAMPLES 				(HAIP_HEADER_AND_ADDR_LEN * HAIP_SYMBOLS_PER_BYTE + HAIP_PREAMBLE_SYMBOLS) * HAIP_OVERSAMPLING_FACTOR
 
 //FUNCTION DECLARATIONS
 bool haiptxrx_iterate(void);

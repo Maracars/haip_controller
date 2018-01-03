@@ -87,28 +87,20 @@ void main(void) {
 	/* Flag which indicates whether to stop the program */
 	bool stop_flag = false;
 	haip_init_const();
-	memcpy(modulated_in,"MIKE2",5);
-	memcpy(modulated_out,modulate_frame(modulated_in,5),HAIP_TX_PACKET_LENGTH);
-	sync = haip_demodulate_head(modulated_out, demodulated_out);
-	length = demodulated_out[0] & 0xE0 >> 5;
-	haip_demodulate_payload(modulated_out,length,sync,demodulated_out);
-	printf("ss");
-	/*bool result = initialize_peripherals();
+	bool result = initialize_peripherals();
 
 	memcpy(entrada_test, "MIKE", 5);
 	test_uart(entrada_test);
 
 	/* IF (Success) */
-	/*if (result == 0) {
-		haiptxrx_init_devices(h_uart_device, h_adi_1854_dac_device,
-				h_adi_1871_adc_device);
+	if (result == 0) {
+		haiptxrx_init_devices(h_uart_device, h_adi_1854_dac_device, h_adi_1871_adc_device);
 		while (!stop_flag) {
 			haiptxrx_iterate();
 		}
 	}
 
-	finalize_peripherals();*/
-
+	finalize_peripherals();
 }
 //#########################
 // ======= M A I N ========

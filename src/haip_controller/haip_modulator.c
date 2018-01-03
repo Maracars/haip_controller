@@ -23,6 +23,7 @@ segment ("sdram0") static float cos_modulator_6KHz[] = { 1, 0.7071, 0, -0.7071, 
 segment ("sdram0") static fract32 frame_symbols_real[HAIP_PACKET_LENGTH];
 segment ("sdram0") static fract32 frame_symbols_imag[HAIP_PACKET_LENGTH];
 
+segment ("sdram0") static char frame_code[HAIP_PACKET_LENGTH*HAIP_CODING_RATE];
 segment ("sdram0") static fract32 frame_symbols_real_upsample[HAIP_TX_PACKET_LENGTH];
 segment ("sdram0") static fract32 frame_symbols_imag_upsample[HAIP_TX_PACKET_LENGTH];
 segment ("sdram0") static fract32 modulated_synchronization[HAIP_TX_PACKET_LENGTH];
@@ -42,7 +43,7 @@ fract32 delay_imag[HAIP_SRCOS_COEFF_NUM];
 
 fract32* modulate_frame(unsigned char* frame_buffer, int frame_length) {
 	int frame_symbols = frame_length * HAIP_SYMBOLS_PER_BYTE;
-	//haip_hamming_7_4_ext_code(frame_buffer,frame_code, frame_symbols);
+	haip_hamming_7_4_ext_code(frame_buffer,frame_code, frame_symbols);
 	addPreamble();
 	mapper(frame_code, frame_symbols);
 	upsample(frame_symbols);
