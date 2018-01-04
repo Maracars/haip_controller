@@ -39,7 +39,7 @@
 #define HAIP_FRAME_SRC_ID_INDEX        2
 #define HAIP_FRAME_DATA_LEN_INDEX        3
 
-#define HAIP_DIGITAL_INPUT_TIMEOUT        0.02
+#define HAIP_DIGITAL_INPUT_TIMEOUT        0.1
 #define HAIP_DIGITAL_INPUT_BUFFER_SIZE    500
 #define HAIP_FRAME_BUFFER_SIZE            10
 #define HAIP_ANALOG_BUFFER_SIZE        65536*2
@@ -84,9 +84,9 @@
 typedef struct haip_header_t {
     union {
         struct {
-            uint8_t len :HAIP_HEADER_LEN_LEN;
+        	uint8_t cnt :HAIP_HEADER_CNT_LEN;
             uint8_t type :HAIP_HEADER_TYPE_LEN;
-            uint8_t cnt :HAIP_HEADER_CNT_LEN;
+            uint8_t len :HAIP_HEADER_LEN_LEN;
         };
         uint8_t header;
     };
@@ -95,6 +95,8 @@ typedef struct haip_header_t {
 typedef struct haip_sync_t {
     uint8_t sample;
     double phase_off;
+    float att;
+    int start_indx;
 } haip_sync_t;
 
 //Mathematical constant

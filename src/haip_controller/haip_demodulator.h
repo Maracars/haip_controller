@@ -35,5 +35,6 @@
 //FUNCTIONS
 haip_sync_t haip_demodulate_head(fract32* analog_data, unsigned char* output_digital_data);
 void haip_demodulate_payload(fract32* analog_data, int buffer_len, haip_sync_t sync,  unsigned char* output_digital_data);
+void haip_init_demodulator(void);
 
 #endif /* HAIP_DEMODULATOR_H_ */
