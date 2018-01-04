@@ -71,7 +71,7 @@ fract32* modulate_frame(unsigned char* frame_buffer, int frame_length) {
 	int after_code[frame_length*HAIP_CODING_RATE];
 
 	haip_hamming_7_4_ext_code(frame_buffer, frame_code, frame_symbols);
-	//addPreamble();
+	addPreamble();
 	for (int j = 0; j < frame_symbols*HAIP_CODING_RATE / HAIP_SYMBOLS_PER_BYTE; ++j) {
 		t = frame_code[j];
 	}
@@ -79,15 +79,17 @@ fract32* modulate_frame(unsigned char* frame_buffer, int frame_length) {
 	upsample(frame_symbols*HAIP_CODING_RATE + HAIP_PREAMBLE_SYMBOLS);
 	filter();
 	oscilate();
+
 	get_quadrature_inphase_test(frame_symbols * HAIP_OVERSAMPLING_FACTOR + HAIP_SRCOS_COEFF_NUM);
 	filter_sqrcosine_test(frame_symbols * HAIP_OVERSAMPLING_FACTOR);
-	subsample_test(HAIP_SRCOS_FILTER_DELAY, HAIP_OVERSAMPLING_FACTOR, frame_symbols * HAIP_OVERSAMPLING_FACTOR);
+	subsample_test(HAIP_SRCOS_FILTER_DELAY + HAIP_PREAMBLE_SYMBOLS*8, HAIP_OVERSAMPLING_FACTOR, frame_symbols * HAIP_OVERSAMPLING_FACTOR);
 	demap_16QAM_test(frame_symbols * HAIP_CODING_RATE, 0, frame_code);
 	haip_hamming_7_4_ext_decode(frame_code, frame_dem, frame_symbols * HAIP_CODING_RATE / 2);
 	for(int i = 0; i<frame_length; i++){
 		t = frame_buffer[i];
 		r = frame_dem[i];
 	}
+
 
 	return modulated_signal;
 }
@@ -114,8 +116,8 @@ void mapper(unsigned char* frame_buffer, int frame_length) {
 		else
 			numDecimal = ((frame_buffer[i / 2] & 0xF0) >> 4);
 
-		frame_symbols_real[i] = haip_const[numDecimal][0];
-		frame_symbols_imag[i] = haip_const[numDecimal][1];
+		frame_symbols_real[i + HAIP_PREAMBLE_SYMBOLS] = haip_const[numDecimal][0];
+		frame_symbols_imag[i + HAIP_PREAMBLE_SYMBOLS] = haip_const[numDecimal][1];
 
 		re[i] = haip_ideal_const[numDecimal][0];
 		im[i] = haip_ideal_const[numDecimal][1];
@@ -313,140 +315,3 @@ void filter_sqrcosine_test(int len) {
 		im[i] = fr32_to_float(filtered_samples_i[i]);
 	}
 }
-
-/*
- * Demodulates the received signal
- *
-void demodulate() {
-
-	for (int i = 0; i < 10 * 8 + 50 + 2; i++) {
-		received_real[i] = (modulated_signal[i] * cos_modulator_6KHz[i % 8])
-				* SQRT_2;
-		received_imag[i] = (-modulated_signal[i] * sin_modulator_6KHz[i % 8])
-				* SQRT_2;
-	}
-}
-
-/*
- * Filters the demodulated signal (square raised cosine filter)
- *
-void filter_demodulator() {
-
-	for (int i = 0; i < HAIP_SRCOS_COEFF_NUM; i++) {
-		delay_real[i] = 0;
-		delay_imag[i] = 0;
-		received_real[10 * 8 + i] = 0;
-		received_imag[10 * 8 + i] = 0;
-	}
-
-	fir_init(state_real, haip_srcos_fir_fil_coeffs_fr32, delay_real,
-			HAIP_SRCOS_COEFF_NUM, 0);
-	fir_init(state_imag, haip_srcos_fir_fil_coeffs_fr32, delay_imag,
-			HAIP_SRCOS_COEFF_NUM, 0);
-
-	fir_fr32(received_real, filtered_fr_real, 10 * 8 + 50, &state_real);
-	fir_fr32(received_imag, filtered_fr_imag, 10 * 8 + 50, &state_imag);
-}
-
-/*
- * downsamples the signal
- *
-
-//coge los symbolos del real y del imaginario
-void dowmsample() {
-	int i;
-	float sample;
-	float aa = fr32_to_float(corrMaxValue);
-	float attenuation = PERFECT_CORRELATION * 0.9 / (aa * 32 / 0.75);
-	complex_float sample_cmp, sample_amplified, phase_cmp;
-
-	for (i = 0; i < 10; i++) {
-		sample_amplified.im = fr32_to_float(
-				filtered_fr_imag[(i + startingPoint) * 8]);
-		sample_amplified.re = fr32_to_float(
-				filtered_fr_real[(i + startingPoint) * 8]);
-		phase_cmp = cexpf(-phasef);
-		sample_cmp = cmltf(sample_amplified, phase_cmp);
-
-		received_symbols[i].re = float_to_fr32(sample_cmp.re);
-		received_symbols[i].im = float_to_fr32(sample_cmp.im);
-	}
-}
-
-void init_ranges() {
-	range1 = float_to_fr32(range1_f);
-	range2 = float_to_fr32(range2_f);
-}
-
-/*
- * Detects the received symbols
- *
-void demapper() {
-
-	int bit_1, bit_2, bit_3, bit_4;
-	char symbol_bits;
-
-	init_ranges();
-
-	for (int i = 0; i < 10; i++) {
-		symbol_bits = 0;
-		if (received_symbols[i].re < range1) {
-			bit_1 = 0;
-
-			if (received_symbols[i].re < -range2) {
-				bit_2 = 0;
-			} else {
-				bit_2 = 1;
-			}
-		} else {
-			bit_1 = 1;
-
-			if (received_symbols[i].re < range2) {
-				bit_2 = 1;
-			} else {
-				bit_2 = 0;
-			}
-		}
-
-		if (received_symbols[i].im < range1) {
-			bit_3 = 1;
-
-			if (received_symbols[i].im < -range2) {
-				bit_4 = 0;
-			} else {
-				bit_4 = 1;
-			}
-
-		} else {
-			bit_3 = 0;
-
-			if (received_symbols[i].im < range2) {
-				bit_4 = 1;
-			} else {
-				bit_4 = 0;
-			}
-		}
-
-		symbol_bits = (bit_1 << 3) + (bit_2 << 2) + (bit_3 << 1) + bit_4;
-
-		symbols[i] = symbol_bits;
-
-	}
-
-}
-
-int count = 0;
-
-void symbol2char() {
-
-	for (int i = 0; i < 5; i++) {
-		characters[i] = ((symbols[i * 2] & 0xF) << 4)
-				+ (symbols[i * 2 + 1] & 0xF);
-	}
-
-	if (++count > 5) {
-		count++;
-	}
-}
-
-*/

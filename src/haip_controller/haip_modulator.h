@@ -23,17 +23,11 @@ void upsample(int frame_symbols);
 void filter(void);
 void oscilate(void);
 void addHeader(void);
+
 void demap_16QAM_test(int len, double phase_off, unsigned char* frame_buffer);
 void get_quadrature_inphase_test(int buffer_len);
 void subsample_test(int n, int t, int len);
-
-void filter_sqrcosine_test(int len);
-void symbol2char();
-void demapper();
-void init_ranges();
-void dowmsample();
-void filter_demodulator();
-void demodulate();
+void filter_sqrcosine_test(int len) ;
 
 
 #endif /* HAIPMODULATOR_H_ */
