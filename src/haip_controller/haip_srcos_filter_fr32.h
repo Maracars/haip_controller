@@ -9,7 +9,7 @@
 #define HAIP_SRCOS_COEFF_NUM 			49
 #define HAIP_SRCOS_FILTER_DELAY         ((HAIP_SRCOS_COEFF_NUM-1)/2)
 
-#pragma section("L1_data_a")
+
 extern fract32 haip_srcos_fir_fil_coeffs_fr32[HAIP_SRCOS_COEFF_NUM];
 
 #endif

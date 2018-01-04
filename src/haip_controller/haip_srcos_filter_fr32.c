@@ -7,6 +7,7 @@
 
 #include "haip_srcos_filter_fr32.h"
 
+#pragma section("L1_data_a")
 fract32 haip_srcos_fir_fil_coeffs_fr32[HAIP_SRCOS_COEFF_NUM]= {
 0xff98d901,
 0xffb087cc,

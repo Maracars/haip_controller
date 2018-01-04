@@ -23,15 +23,17 @@ void upsample(int frame_symbols);
 void filter(void);
 void oscilate(void);
 void addHeader(void);
-void demap_16QAM_test(fract32* analog_samples_r, fract32* analog_samples_i,
-		int len, double phase_off, unsigned char* data, unsigned char* in, fract32* test_r, fract32* test_i);
-void get_quadrature_inphase_test(fract32* analog_data, int buffer_len,
-		fract32* raw_samples_r, fract32* raw_samples_i);
-void subsample_test(fract32* filtered_r, fract32* filtered_i, int n, int t, int len,
-		fract32* raw_samples_r, fract32* raw_samples_i);
+void demap_16QAM_test(int len, double phase_off, unsigned char* frame_buffer);
+void get_quadrature_inphase_test(int buffer_len);
+void subsample_test(int n, int t, int len);
 
-void filter_sqrcosine_test(fract32* nraw_samples_r, fract32* nraw_samples_i, int len,
-		fract32* filtered_samples_r, fract32* filtered_samples_i);
+void filter_sqrcosine_test(int len);
+void symbol2char();
+void demapper();
+void init_ranges();
+void dowmsample();
+void filter_demodulator();
+void demodulate();
 
 
 #endif /* HAIPMODULATOR_H_ */
