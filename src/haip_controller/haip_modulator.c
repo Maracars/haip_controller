@@ -30,9 +30,9 @@ segment ("sdram0") static fract32 frame_symbols_real_upsample[10 * 8];
 segment ("sdram0") static fract32 frame_symbols_imag_upsample[10 * 8];
 segment ("sdram0") static fract32 modulated_synchronization[HAIP_TX_PACKET_LENGTH];
 
-segment ("sdram0") static fract32 filtered_real_symbols[10 * 8 + 49];
-segment ("sdram0") static fract32 filtered_imag_symbols[10 * 8 + 49];
-segment ("sdram0") static fract32 modulated_signal[10 * 8 + 49];
+segment ("sdram0") static fract32 filtered_real_symbols[HAIP_TX_PACKET_LENGTH + HAIP_SRCOS_COEFF_NUM];
+segment ("sdram0") static fract32 filtered_imag_symbols[HAIP_TX_PACKET_LENGTH + HAIP_SRCOS_COEFF_NUM];
+segment ("sdram0") static fract32 modulated_signal[HAIP_TX_PACKET_LENGTH + HAIP_SRCOS_COEFF_NUM];
 
 fir_state_fr32 state_real;
 fir_state_fr32 state_imag;
@@ -56,7 +56,10 @@ segment ("sdram0") static fract32 filtered_samples_r[10
 		* HAIP_OVERSAMPLING_FACTOR + 49 * 2];
 segment ("sdram0") static fract32 filtered_samples_i[10
 		* HAIP_OVERSAMPLING_FACTOR + 49 * 2];
-segment ("sdram0") static unsigned char* ppp[10];
+segment ("sdram0") static unsigned char ppp[10];
+segment ("sdram0") static unsigned char frame_code[HAIP_FRAME_MAX_LEN*HAIP_CODING_RATE];
+segment ("sdram0") static unsigned char frame_dem[HAIP_FRAME_MAX_LEN];
+
 
 segment ("sdram0") char prueba;
 
@@ -64,19 +67,27 @@ bool packetReceivedADC;
 
 fract32* modulate_frame(unsigned char* frame_buffer, int frame_length) {
 	int frame_symbols = frame_length * HAIP_SYMBOLS_PER_BYTE;
+	unsigned char t , r;
+	int after_code[frame_length*HAIP_CODING_RATE];
 
-	//haip_hamming_7_4_ext_code(frame_buffer,frame_code, frame_symbols);
+	haip_hamming_7_4_ext_code(frame_buffer, frame_code, frame_symbols);
 	//addPreamble();
-	mapper(frame_buffer, frame_symbols);
-	upsample(frame_symbols);
-
+	for (int j = 0; j < frame_symbols*HAIP_CODING_RATE / HAIP_SYMBOLS_PER_BYTE; ++j) {
+		t = frame_code[j];
+	}
+	mapper(frame_code, frame_symbols*HAIP_CODING_RATE);
+	upsample(frame_symbols*HAIP_CODING_RATE + HAIP_PREAMBLE_SYMBOLS);
 	filter();
 	oscilate();
-	get_quadrature_inphase_test(frame_symbols * 8 + 49);
+	get_quadrature_inphase_test(frame_symbols * HAIP_OVERSAMPLING_FACTOR + HAIP_SRCOS_COEFF_NUM);
 	filter_sqrcosine_test(frame_symbols * HAIP_OVERSAMPLING_FACTOR);
-	subsample_test(24, HAIP_OVERSAMPLING_FACTOR,
-			frame_symbols * HAIP_OVERSAMPLING_FACTOR);
-	demap_16QAM_test(frame_symbols, 0, frame_buffer);
+	subsample_test(HAIP_SRCOS_FILTER_DELAY, HAIP_OVERSAMPLING_FACTOR, frame_symbols * HAIP_OVERSAMPLING_FACTOR);
+	demap_16QAM_test(frame_symbols * HAIP_CODING_RATE, 0, frame_code);
+	haip_hamming_7_4_ext_decode(frame_code, frame_dem, frame_symbols * HAIP_CODING_RATE / 2);
+	for(int i = 0; i<frame_length; i++){
+		t = frame_buffer[i];
+		r = frame_dem[i];
+	}
 
 	return modulated_signal;
 }
@@ -94,8 +105,8 @@ void mapper(unsigned char* frame_buffer, int frame_length) {
 	int i = 0;
 	int numDecimal = 0;
 
-	float re[20];
-	float im[20];
+	float re[40];
+	float im[40];
 
 	for (i = 0; i < frame_length; i++) {
 		if (i % 2 != 0)
@@ -114,14 +125,13 @@ void mapper(unsigned char* frame_buffer, int frame_length) {
 
 void upsample(int frame_length) {
 	int i = 0;
-	int oversampled_length = (frame_length + HAIP_PREAMBLE_SYMBOLS)
-			* HAIP_OVERSAMPLING_FACTOR;
+	int oversampled_length = (frame_length + HAIP_PREAMBLE_SYMBOLS) * HAIP_OVERSAMPLING_FACTOR;
 	float re[HAIP_TX_PACKET_LENGTH];
 	float im[HAIP_TX_PACKET_LENGTH];
 
-	for (i = 0; i < 10 * 8; i++) {
+	for (i = 0; i < oversampled_length; i++) {
 
-		if (i % HAIP_OVERSAMPLING_FACTOR == 0 && i < oversampled_length) {
+		if (i % HAIP_OVERSAMPLING_FACTOR == 0) {
 
 			/*Mikeleri galdetu behar dan edo ez*/
 			if (i == 0) {
@@ -152,26 +162,22 @@ void upsample(int frame_length) {
 
 void filter() {
 	int i = 0;
-	float re[HAIP_TX_PACKET_LENGTH];
-	float im[HAIP_TX_PACKET_LENGTH];
+	float re[HAIP_TX_PACKET_LENGTH + HAIP_SRCOS_COEFF_NUM];
+	float im[HAIP_TX_PACKET_LENGTH + HAIP_SRCOS_COEFF_NUM];
 
-	for (i = 0; i < 10 * 8; i++) {
+	for (i = 0; i < HAIP_SRCOS_COEFF_NUM; i++) {
 		delay_real[i] = 0;
 		delay_imag[i] = 0;
 	}
 
-	fir_init(state_real, haip_srcos_fir_fil_coeffs_fr32, delay_real,
-			HAIP_SRCOS_COEFF_NUM, 0);
-	fir_init(state_imag, haip_srcos_fir_fil_coeffs_fr32, delay_imag,
-			HAIP_SRCOS_COEFF_NUM, 0);
+	fir_init(state_real, haip_srcos_fir_fil_coeffs_fr32, delay_real, HAIP_SRCOS_COEFF_NUM, 0);
+	fir_init(state_imag, haip_srcos_fir_fil_coeffs_fr32, delay_imag, HAIP_SRCOS_COEFF_NUM, 0);
 
 	//Filters the signal
-	fir_fr32(frame_symbols_real_upsample, filtered_real_symbols,
-			10 * 8 + HAIP_SRCOS_COEFF_NUM, &state_real);
-	fir_fr32(frame_symbols_imag_upsample, filtered_imag_symbols,
-			10 * 8 + HAIP_SRCOS_COEFF_NUM, &state_imag);
+	fir_fr32(frame_symbols_real_upsample, filtered_real_symbols, HAIP_TX_PACKET_LENGTH + HAIP_SRCOS_COEFF_NUM, &state_real);
+	fir_fr32(frame_symbols_imag_upsample, filtered_imag_symbols, HAIP_TX_PACKET_LENGTH + HAIP_SRCOS_COEFF_NUM, &state_imag);
 
-	for (i = 0; i < 10 * 8 + HAIP_SRCOS_COEFF_NUM; ++i) {
+	for (i = 0; i < HAIP_TX_PACKET_LENGTH + HAIP_SRCOS_COEFF_NUM; i++) {
 		re[i] = fr32_to_float(filtered_real_symbols[i]);
 		im[i] = fr32_to_float(filtered_imag_symbols[i]);
 	}
@@ -181,11 +187,9 @@ void oscilate() {
 	int i = 0;
 	float mod[149];
 
-	for (i = 0; i < 10 * 8 + 49; ++i) {
-		modulated_signal[i] = (filtered_real_symbols[i + 24]
-				* cos_modulator_6KHz[i % 8]
-				- filtered_imag_symbols[i + 24] * sin_modulator_6KHz[i % 8])
-				* SQRT_2;
+	for (i = 0; i < HAIP_PACKET_LENGTH + HAIP_SRCOS_COEFF_NUM; ++i) {
+		modulated_signal[i] = (filtered_real_symbols[i + HAIP_SRCOS_FILTER_DELAY] * cos_modulator_6KHz[i % 8]
+				- filtered_imag_symbols[i + HAIP_SRCOS_FILTER_DELAY] * sin_modulator_6KHz[i % 8]) * SQRT_2;
 	}
 	for (i = 0; i < 149; ++i) {
 		mod[i] = fr32_to_float(modulated_signal[i]);
@@ -298,15 +302,11 @@ void filter_sqrcosine_test(int len) {
 		ndelay_imag[i] = 0;
 	}
 
-	fir_init(nstate_real, haip_srcos_fir_fil_coeffs_fr32, ndelay_real,
-			HAIP_SRCOS_COEFF_NUM, 0);
-	fir_init(nstate_imag, haip_srcos_fir_fil_coeffs_fr32, ndelay_imag,
-			HAIP_SRCOS_COEFF_NUM, 0);
+	fir_init(nstate_real, haip_srcos_fir_fil_coeffs_fr32, ndelay_real, HAIP_SRCOS_COEFF_NUM, 0);
+	fir_init(nstate_imag, haip_srcos_fir_fil_coeffs_fr32, ndelay_imag, HAIP_SRCOS_COEFF_NUM, 0);
 
-	fir_fr32(raw_samples_r, filtered_samples_r, len + HAIP_SRCOS_COEFF_NUM * 2,
-			&nstate_real);
-	fir_fr32(raw_samples_i, filtered_samples_i, len + HAIP_SRCOS_COEFF_NUM * 2,
-			&nstate_imag);
+	fir_fr32(raw_samples_r, filtered_samples_r, len + HAIP_SRCOS_COEFF_NUM * 2, &nstate_real);
+	fir_fr32(raw_samples_i, filtered_samples_i, len + HAIP_SRCOS_COEFF_NUM * 2, &nstate_imag);
 
 	for (int i = 0; i < len + HAIP_SRCOS_COEFF_NUM * 2; i++) {
 		re[i] = fr32_to_float(filtered_samples_r[i]);

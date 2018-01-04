@@ -37,13 +37,16 @@ unsigned char decode_hamming(unsigned char b);
 void haip_hamming_7_4_ext_code(const unsigned char *input_bytes,
 		unsigned char *output_bytes, int len) {
 	int i = 0;
-	for (; i < len; i++) {
+	unsigned char test;
+	for (i = 0; i < len; i++) {
 		if (i % 2)
-			output_bytes[i / 2] = code_ext_hamming(
-					input_bytes[i] & (unsigned char) 0x0F);
+			output_bytes[i] = code_ext_hamming(
+					input_bytes[i / 2] & (unsigned char) 0x0F);
 		else
-			output_bytes[i / 2] = code_ext_hamming(
-					(input_bytes[i] & (unsigned char) 0xF0) >> 4);
+			output_bytes[i] = code_ext_hamming(
+					(input_bytes[i / 2] & (unsigned char) 0xF0) >> 4);
+
+		test = output_bytes[i / 2];
 	}
 }
 
@@ -53,6 +56,7 @@ int haip_hamming_7_4_ext_decode(const unsigned char *input_bytes,
 	int i = 0;
 	int ret = 0;
 	unsigned char corrected, decoded;
+	unsigned char temp = 0;
 	for (; i < len; i++) {
 		int hamm_not_ok = check_and_correct_hamming(input_bytes[i], &corrected);
 		if (hamm_not_ok) {
@@ -61,8 +65,12 @@ int haip_hamming_7_4_ext_decode(const unsigned char *input_bytes,
 				ret++;
 		}
 		decoded = decode_hamming(corrected);
-		output_bytes[i / 2] = output_bytes[i / 2]
-				| (decoded << 4 * (i % 2 == 1 ? 0 : 1));
+		temp = temp | (decoded << 4 * (i % 2 == 1 ? 0 : 1));
+		if (i % 2){
+			output_bytes[i / 2] = temp;
+			temp = 0;
+		}
+
 	}
 	return ret;
 }

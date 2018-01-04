@@ -102,7 +102,6 @@ bool has_tx_frame_ready() {
 }
 
 void output_analog() {
-
 	if (dac_is_free()) {
 		if (has_tx_frame_ready()) {
 			for (int i = 0; i < frame_count; i++) {

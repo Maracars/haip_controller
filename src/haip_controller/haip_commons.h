@@ -57,9 +57,9 @@
 #define HAIP_BITS_PER_SYMBOL                4
 #define HAIP_CODING_WORDLEN                    8
 #define HAIP_CODING_DATABITS                4
-#define HAIP_CODING_RATE                    HAIP_CODING_WORDLEN / HAIP_CODING_DATABITS
+#define HAIP_CODING_RATE                    (HAIP_CODING_WORDLEN / HAIP_CODING_DATABITS)
 #define HAIP_PREAMBLE_SYMBOLS                8
-#define HAIP_SYMBOLS_PER_BYTE                8/HAIP_BITS_PER_SYMBOL
+#define HAIP_SYMBOLS_PER_BYTE                (8/HAIP_BITS_PER_SYMBOL)
 /* Haip frame structure */
 #define HAIP_FRAME_HEADER_LEN            1
 #define HAIP_FRAME_HEADER_OFF            1
