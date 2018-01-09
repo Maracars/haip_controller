@@ -97,7 +97,8 @@ void main(void) {
 	modulate_frame(modulated_in, 5, modulated_signal);
 	sync = haip_demodulate_head(modulated_signal, demodulated_out);
 	length = (demodulated_out[0] & 0xE0) >> 5;
-	haip_demodulate_payload(modulated_out, length, sync, demodulated_out);
+	length += HAIP_HEADER_AND_ADDR_LEN;
+	haip_demodulate_payload(modulated_signal, length, sync, demodulated_out);
 	printf("ss");
 	/*bool result = initialize_peripherals();
 

@@ -36,7 +36,8 @@ void get_quadrature_inphase(fract32* analog_data, int buffer_len,
 		fract32* raw_samples_r, fract32* raw_samples_i);
 /* Applies the squared raised cosine filter to the analog data ( see haip_srcos_filter_fr32.h) */
 void filter_sqrcosine(fract32* raw_samples_i, fract32* raw_samples_r, int len,
-		fract32* filtered_samples_r, fract32* filtered_samples_i);
+		fract32* filtered_samples_r, fract32* filtered_samples_i,
+		bool dem_header);
 /* Gets the synchronization parameters from the preamble */
 haip_sync_t syncronize_with_preamble(fract32* filtered_analog_complex_data_r,
 		fract32* filtered_analog_complex_data_i);
@@ -56,22 +57,22 @@ haip_sync_t haip_demodulate_head(fract32* analog_data,
 	fract32* samples_w0_pream_i;
 	unsigned char start, final;
 
-	get_quadrature_inphase(analog_data, (10 * 2 +8)* 8 + 49, analog_samples_r,
+	get_quadrature_inphase(analog_data,
+	HAIP_DEMOD_HEADER_SAMPLES + HAIP_SRCOS_COEFF_NUM * 2, analog_samples_r,
 			analog_samples_i); //demodulate
-	filter_sqrcosine(analog_samples_r, analog_samples_i, (10 * 2 +8)* 8,
-			filtered_samples_r, filtered_samples_i); //filter
+	filter_sqrcosine(analog_samples_r, analog_samples_i,
+	HAIP_DEMOD_HEADER_SAMPLES, filtered_samples_r, filtered_samples_i, true); //filter
 	sync = syncronize_with_preamble(filtered_samples_r, filtered_samples_i); //sync
 
-	//samples_w0_pream_r = &raw_samples_r[HAIP_PREAMBLE_SYMBOLS/ HAIP_SYMBOLS_PER_BYTE]; //Ignore preamble from now on
-	//samples_w0_pream_i = &raw_samples_i[HAIP_PREAMBLE_SYMBOLS/ HAIP_SYMBOLS_PER_BYTE]; //Ignore preamble from now on
-
 	subsample(filtered_samples_r, filtered_samples_i, 0,
-	HAIP_OVERSAMPLING_FACTOR, 10 * 2 * 8, subsamples, HAIP_SRCOS_FILTER_DELAY+HAIP_PREAMBLE_SYMBOLS*HAIP_OVERSAMPLING_FACTOR); //subsample
-	demap_16QAM(subsamples, 10 * 2, 0, demapped_data); //demap
+	HAIP_OVERSAMPLING_FACTOR, HAIP_DEMOD_HEADER_SAMPLES, subsamples,
+	HAIP_SRCOS_FILTER_DELAY + HAIP_PREAMBLE_SYMBOLS * HAIP_OVERSAMPLING_FACTOR); //subsample
+	demap_16QAM(subsamples, HAIP_DEMOD_HEADER_SUBSAMPLES, 0, demapped_data); //demap
 	for (int tm = 0; tm < 10; ++tm) {
 		start = demapped_data[tm];
 	}
-	haip_hamming_7_4_ext_decode(demapped_data, output_digital_data, 10); //decode
+	haip_hamming_7_4_ext_decode(demapped_data, output_digital_data,
+	HAIP_DEMOD_HEADER_CODED_LEN); //decode
 	for (int i = 0; i < 10; i++) {
 		final = output_digital_data[i];
 	}
@@ -80,36 +81,58 @@ haip_sync_t haip_demodulate_head(fract32* analog_data,
 
 void haip_demodulate_payload(fract32* analog_data, int buffer_len,
 		haip_sync_t sync, unsigned char* output_digital_data) {
+	int data_symbol_length = buffer_len * HAIP_CODING_RATE * 2
+			* HAIP_OVERSAMPLING_FACTOR;
+	unsigned char final;
 
-	get_quadrature_inphase(analog_data, buffer_len, analog_samples_r,
-			analog_samples_i); //demodulate
-	//filter_sqrcosine(raw_samples_r, raw_samples_i, buffer_len, filtered_samples_r, filtered_samples_i); //filter
-	subsample(analog_samples_r, analog_samples_i, sync.sample,
-	HAIP_OVERSAMPLING_FACTOR, buffer_len, subsamples, HAIP_SRCOS_FILTER_DELAY); //subsample
+	get_quadrature_inphase(analog_data,
+			data_symbol_length + HAIP_SRCOS_COEFF_NUM
+					+ (HAIP_PREAMBLE_SYMBOLS * HAIP_OVERSAMPLING_FACTOR),
+			analog_samples_r, analog_samples_i); //demodulate
+	filter_sqrcosine(analog_samples_r, analog_samples_i,
+			data_symbol_length
+					+ (HAIP_PREAMBLE_SYMBOLS * HAIP_OVERSAMPLING_FACTOR),
+			filtered_samples_r, filtered_samples_i, false); //filter
+	subsample(filtered_samples_r, filtered_samples_i, 0,
+	HAIP_OVERSAMPLING_FACTOR, data_symbol_length, subsamples,
+	HAIP_SRCOS_FILTER_DELAY + HAIP_PREAMBLE_SYMBOLS * HAIP_OVERSAMPLING_FACTOR); //subsample
 
-	int subsample_num = buffer_len / HAIP_OVERSAMPLING_FACTOR;
+	demap_16QAM(subsamples, data_symbol_length / HAIP_OVERSAMPLING_FACTOR, 0,
+			demapped_data); //demap
+	haip_hamming_7_4_ext_decode(demapped_data, output_digital_data,
+			buffer_len * HAIP_CODING_RATE); //decode
 
-	demap_16QAM(subsamples, subsample_num, sync.phase_off, output_digital_data); //demap
-	//haip_hamming_7_4_ext_decode(demapped_data, output_digital_data, subsample_num / (8 / HAIP_BITS_PER_SYMBOL)); //decode
+	for (int i = 0; i < buffer_len; i++) {
+		final = output_digital_data[i];
+	}
 
 }
 
 void get_quadrature_inphase(fract32* analog_data, int buffer_len,
 		fract32* raw_samples_r, fract32* raw_samples_i) {
+	float re[(10 * 2 + 8) * 8 + 50];
+	float im[(10 * 2 + 8) * 8 + 50];
+	float mod[(10 * 2 + 8) * 8 + 50];
 	for (int i = 0; i < buffer_len; i++) {
+		mod[i] = fr32_to_float(analog_data[i]);
 		raw_samples_r[i] =
 				(analog_data[i] * cos_modulator_6KHz[i % 8]) * SQRT_2;
 		raw_samples_i[i] = (-analog_data[i] * sin_modulator_6KHz[i % 8])
 				* SQRT_2;
+		re[i] = fr32_to_float(raw_samples_r[i]);
+		im[i] = fr32_to_float(raw_samples_i[i]);
 	}
 }
 
 void filter_sqrcosine(fract32* raw_samples_r, fract32* raw_samples_i, int len,
-		fract32* filtered_samples_r, fract32* filtered_samples_i) {
+		fract32* filtered_samples_r, fract32* filtered_samples_i,
+		bool dem_header) {
 
 	fir_state_fr32 state_real;
 	fir_state_fr32 state_imag;
 	int i;
+	float re[(10 * 2 + 8) * 8 + 100];
+	float im[(10 * 2 + 8) * 8 + 100];
 	for (i = 0; i < HAIP_SRCOS_COEFF_NUM; i++) {
 		delay_real[i] = 0;
 		delay_imag[i] = 0;
@@ -117,9 +140,14 @@ void filter_sqrcosine(fract32* raw_samples_r, fract32* raw_samples_i, int len,
 
 	/* Paketean tamañue pasau eta hori aldatu 160 gaitik
 	 * If bet ipini aurretik jakiteko headerra edo payload demoduletan gabizen*/
-	for (i = (10*2+8)*8; i < (10*2+8)*8 + 49 * 2; i++) {
-		raw_samples_r[i] = 0;
-		raw_samples_i[i] = 0;
+	if (!dem_header) {
+		for (i = len; i < (len + (HAIP_SRCOS_COEFF_NUM * 2)); i++) {
+			raw_samples_r[i] = 0;
+			raw_samples_i[i] = 0;
+			if (i > 300) {
+				printf("a");
+			}
+		}
 	}
 
 	fir_init(state_real, haip_srcos_fir_fil_coeffs_fr32, delay_real,
@@ -131,6 +159,11 @@ void filter_sqrcosine(fract32* raw_samples_r, fract32* raw_samples_i, int len,
 			&state_real);
 	fir_fr32(raw_samples_i, filtered_samples_i, len + HAIP_SRCOS_COEFF_NUM * 2,
 			&state_imag);
+
+	for (int i = 0; i < len + HAIP_SRCOS_COEFF_NUM * 2; i++) {
+		re[i] = fr32_to_float(filtered_samples_r[i]);
+		im[i] = fr32_to_float(filtered_samples_i[i]);
+	}
 
 }
 
@@ -146,10 +179,16 @@ haip_sync_t syncronize_with_preamble(fract32* filtered_analog_complex_data_r,
 void subsample(fract32* filtered_r, fract32* filtered_i, int n, int t, int len,
 		complex_fract32* subsampled_data, int delay) {
 	int indx = 0;
+	float re[20];
+	float im[20];
 	while (len + delay - indx * t >= t) {
 		subsampled_data[indx].re = filtered_r[indx * t + n + delay];
 		subsampled_data[indx].im = filtered_i[indx * t + n + delay];
 		indx++;
+	}
+	for (int i = 0; i < 20; i++) {
+		re[i] = fr32_to_float(subsampled_data[i].re);
+		im[i] = fr32_to_float(subsampled_data[i].im);
 	}
 }
 
