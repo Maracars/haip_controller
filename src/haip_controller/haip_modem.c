@@ -77,10 +77,11 @@ static uint8_t reserved_uart_memory[ADI_UART_BIDIR_DMA_MEMORY_SIZE];
 //#########################
 // ======= M A I N ========
 //#########################
+segment ("sdram0") static fract32 modulated_signal[40 * 8 + 49];
+segment ("sdram0") static unsigned char demodulated_out[25];
 void main(void) {
 	fract32 modulated_out[HAIP_TX_PACKET_LENGTH];
 	unsigned char modulated_in[5];
-	unsigned char demodulated_out[HAIP_TX_PACKET_LENGTH];
 	haip_sync_t sync;
 	int length = 0;
 
@@ -93,26 +94,26 @@ void main(void) {
 	modulated_in[3] = 0b01000101;
 	modulated_in[4] = 0b00110010;
 	//memcpy(modulated_in,"MIKE2",5);
-	memcpy(modulated_out,modulate_frame(modulated_in,5),HAIP_TX_PACKET_LENGTH);
-	sync = haip_demodulate_head(modulated_out, demodulated_out);
+	modulate_frame(modulated_in, 5, modulated_signal);
+	sync = haip_demodulate_head(modulated_signal, demodulated_out);
 	length = (demodulated_out[0] & 0xE0) >> 5;
-	haip_demodulate_payload(modulated_out,length,sync,demodulated_out);
+	haip_demodulate_payload(modulated_out, length, sync, demodulated_out);
 	printf("ss");
 	/*bool result = initialize_peripherals();
 
-	memcpy(entrada_test, "MIKE", 5);
-	test_uart(entrada_test);
+	 memcpy(entrada_test, "MIKE", 5);
+	 test_uart(entrada_test);
 
-	/* IF (Success) */
+	 /* IF (Success) */
 	/*if (result == 0) {
-		haiptxrx_init_devices(h_uart_device, h_adi_1854_dac_device,
-				h_adi_1871_adc_device);
-		while (!stop_flag) {
-			haiptxrx_iterate();
-		}
-	}
+	 haiptxrx_init_devices(h_uart_device, h_adi_1854_dac_device,
+	 h_adi_1871_adc_device);
+	 while (!stop_flag) {
+	 haiptxrx_iterate();
+	 }
+	 }
 
-	finalize_peripherals();*/
+	 finalize_peripherals();*/
 
 }
 //#########################
@@ -346,7 +347,7 @@ static uint32_t init_1854_dac(void) {
 
 	/* Set SPORT device number, External clock source (SPORT as Slave) */
 	eResult = adi_ad1854_SetSportDevice(h_adi_1854_dac_device,
-			AD1854_SPORT_DEV_NUM, true);
+	AD1854_SPORT_DEV_NUM, true);
 
 	/* IF (Failed) */
 	if (eResult != ADI_AD1854_SUCCESS) {
@@ -415,7 +416,7 @@ static uint32_t init_1871_adc(void) {
 
 	/* Set SPORT device number, AD1871 as Master (SPORT as Slave) */
 	eResult = adi_ad1871_SetSportDevice(h_adi_1871_adc_device,
-			AD1871_SPORT_DEV_NUM, true);
+	AD1871_SPORT_DEV_NUM, true);
 
 	/* IF (Failed) */
 	if (eResult != ADI_AD1871_SUCCESS) {

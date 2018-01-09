@@ -48,6 +48,7 @@ haip_hamming_7_4_ext_decode(const unsigned char *input_bytes, unsigned char *out
     int i = 0;
     int ret = 0;
     unsigned char corrected, decoded;
+
     for (; i < len; i++) {
         int hamm_not_ok = check_and_correct_hamming(input_bytes[i], &corrected);
         if (hamm_not_ok) {
