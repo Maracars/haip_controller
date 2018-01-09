@@ -56,9 +56,9 @@ haip_sync_t haip_demodulate_head(fract32* analog_data,
 	fract32* samples_w0_pream_i;
 	unsigned char start, final;
 
-	get_quadrature_inphase(analog_data, 10 * 2 * 8 + 49, analog_samples_r,
+	get_quadrature_inphase(analog_data, (10 * 2 +8)* 8 + 49, analog_samples_r,
 			analog_samples_i); //demodulate
-	filter_sqrcosine(analog_samples_r, analog_samples_i, 10 * 2 * 8,
+	filter_sqrcosine(analog_samples_r, analog_samples_i, (10 * 2 +8)* 8,
 			filtered_samples_r, filtered_samples_i); //filter
 	sync = syncronize_with_preamble(filtered_samples_r, filtered_samples_i); //sync
 
@@ -66,7 +66,7 @@ haip_sync_t haip_demodulate_head(fract32* analog_data,
 	//samples_w0_pream_i = &raw_samples_i[HAIP_PREAMBLE_SYMBOLS/ HAIP_SYMBOLS_PER_BYTE]; //Ignore preamble from now on
 
 	subsample(filtered_samples_r, filtered_samples_i, 0,
-	HAIP_OVERSAMPLING_FACTOR, 10 * 2 * 8, subsamples, HAIP_SRCOS_FILTER_DELAY); //subsample
+	HAIP_OVERSAMPLING_FACTOR, 10 * 2 * 8, subsamples, HAIP_SRCOS_FILTER_DELAY+HAIP_PREAMBLE_SYMBOLS*HAIP_OVERSAMPLING_FACTOR); //subsample
 	demap_16QAM(subsamples, 10 * 2, 0, demapped_data); //demap
 	for (int tm = 0; tm < 10; ++tm) {
 		start = demapped_data[tm];
@@ -117,7 +117,7 @@ void filter_sqrcosine(fract32* raw_samples_r, fract32* raw_samples_i, int len,
 
 	/* Paketean tamañue pasau eta hori aldatu 160 gaitik
 	 * If bet ipini aurretik jakiteko headerra edo payload demoduletan gabizen*/
-	for (i = 160; i < 160 + 49 * 2; i++) {
+	for (i = (10*2+8)*8; i < (10*2+8)*8 + 49 * 2; i++) {
 		raw_samples_r[i] = 0;
 		raw_samples_i[i] = 0;
 	}
