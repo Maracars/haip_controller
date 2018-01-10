@@ -3,7 +3,6 @@
  */
 
 /*=============  I N C L U D E S   =============*/
-
 #include "haip_modem.h"
 /* Managed drivers and/or services include */
 #include "system/adi_initialize.h"
@@ -54,10 +53,16 @@ section ("sdram0") unsigned char entrada_test[BUFFER_SIZE];
 
 /* Audio data buffers */
 #pragma align 4
+section ("sdram0") uint8_t sep0[100];
 section ("sdram0") uint8_t analog_rx_buffer_1[HAIP_ANALOG_BUFFER_SIZE];
+section ("sdram0") uint8_t sep1[100];
 section ("sdram0") uint8_t analog_rx_buffer_2[HAIP_ANALOG_BUFFER_SIZE];
+section ("sdram0") uint8_t sep2[100];
 section ("sdram0") uint8_t analog_tx_buffer_1[HAIP_ANALOG_BUFFER_SIZE];
+section ("sdram0") uint8_t sep3[100];
 section ("sdram0") uint8_t analog_tx_buffer_2[HAIP_ANALOG_BUFFER_SIZE];
+section ("sdram0") uint8_t sep4[100];
+
 
 /* Rx and Tx buffers */
 char buffer_tx_1[BUFFER_SIZE];
@@ -87,6 +92,7 @@ void main(void) {
 
 	/* Flag which indicates whether to stop the program */
 	bool stop_flag = false;
+	//demodulated_out[30] = 1;
 	haip_init_const();
 	/*modulated_in[0] = 0b01001101;
 	 modulated_in[1] = 0b01001001;
@@ -103,9 +109,9 @@ void main(void) {
 	 */
 	bool result = initialize_peripherals();
 
-	/*memcpy(entrada_test, "MIKE", 5);
+	memcpy(entrada_test, "MIKE", 5);
 	test_uart(entrada_test);
-	*/
+
 	/* IF (Success) */
 	if (result == 0) {
 		haiptxrx_init_devices(h_uart_device, h_adi_1854_dac_device,

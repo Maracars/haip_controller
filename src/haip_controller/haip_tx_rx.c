@@ -13,10 +13,11 @@
 section ("sdram0") unsigned char digital_input_buffer[HAIP_UART_BUFFER_SIZE];
 double last_digital_input_t = 0;
 section ("sdram0") unsigned char frame_buffer[HAIP_FRAME_BUFFER_SIZE][HAIP_FRAME_LENGTH_MAX];
-section ("sdram0") fract32 output_buffer[HAIP_DAC_BUFFER_SIZE];
-unsigned char *uart_rx_buffer, *adc_buffer, *dac_buffer, *uart_tx_buffer;
+//section ("sdram0") fract32 output_buffer[HAIP_DAC_BUFFER_SIZE];
+void *uart_rx_buffer, *adc_buffer, *dac_buffer, *uart_tx_buffer;
 
 int frame_count = 0;
+int contadoreMierdosoa = 0;
 
 static ADI_UART_HANDLE uart_dev;
 static ADI_AD1871_HANDLE dac_dev;
@@ -25,13 +26,14 @@ static ADI_AD1871_HANDLE adc_dev;
 section ("sdram0") unsigned char uart_test[HAIP_UART_BUFFER_SIZE];
 
 section ("sdram0") fract32 tmp_buffer[40 * 8 + 49];
+section ("sdram0") unsigned char adc_entered[HAIP_ANALOG_BUFFER_SIZE];
 
 int contar = 0;
 bool uart_has_buffer_ready;
 bool adcAvailable = true;
 bool probetako = false;
 
-fract32 *ptr_32;
+section ("sdram0") unsigned char ptr_32[HAIP_ANALOG_BUFFER_SIZE];
 
 //Declarations
 bool has_tx_frame_ready(void);
@@ -76,7 +78,7 @@ void check_adc_available() {
 	/* IF (AD1871 Buffer available) */
 	if (adcAvailable) {
 		/* Get AD1871 processed buffer address */
-		Result = adi_ad1871_GetRxBuffer(adc_dev, (void**) &adc_buffer);
+		Result = adi_ad1871_GetRxBuffer(adc_dev, &adc_buffer);
 
 		/* IF (Failure) */
 
@@ -90,7 +92,7 @@ void read_digital_input(void) {
 	ADI_UART_RESULT res;
 	res = adi_uart_IsRxBufferAvailable(uart_dev, &uart_has_buffer_ready);
 	if (uart_has_buffer_ready) {
-		adi_uart_GetRxBuffer(uart_dev, (void**) &uart_rx_buffer);
+		adi_uart_GetRxBuffer(uart_dev, &uart_rx_buffer);
 		memcpy(digital_input_buffer, uart_rx_buffer, HAIP_UART_BUFFER_SIZE);
 		adi_uart_SubmitRxBuffer(uart_dev, uart_rx_buffer,
 		HAIP_UART_BUFFER_SIZE);
@@ -177,30 +179,35 @@ void send_dac(bool do_send) {
 	int i = 0;
 	int j = 0;
 	//unsigned char prueba [HAIP_ANALOG_BUFFER_SIZE];
-	result = adi_ad1854_GetTxBuffer(dac_dev, (void**) &dac_buffer);
+	result = adi_ad1854_GetTxBuffer(dac_dev, &dac_buffer);
 	//fract32* fr32_buffer = (fract32*) dac_buffer;
-	ptr_32 = (fract32 *) dac_buffer;
+	//ptr_32 = (unsigned char *) dac_buffer;
 	if (do_send) {
 		fract32 kk = modulate_frame(digital_input_buffer, 5, tmp_buffer);
-		for (i = 0; i < HAIP_ANALOG_BUFFER_SIZE / 4; i++) {
+		for (i = 0; i < HAIP_ANALOG_BUFFER_SIZE/4; i++) {
 			if (i >= ((5 * 2 * 2 + 8) * 8 + 49)
 					&& i % ((5 * 2 * 2 + 8) * 8 + 49) == 0) {
 				j = 0;
 			}
-			ptr_32[i] = tmp_buffer[j]>>8;
+			//ptr_32[i] = (tmp_buffer[j]>>8);
 			j++;
 		}
 		probetako = true;
 		//memcpy(dac_buffer, digital_input_buffer, AUDIO_BUFFER_SIZE);
 	} else {
 
-		for (i = 0; i < HAIP_ANALOG_BUFFER_SIZE / 4; i++) {
-			ptr_32[i] = 0;
+		for (i = 0; i < HAIP_ANALOG_BUFFER_SIZE; i=i+4) {
+			ptr_32[i] = 0x6E;
+			ptr_32[i+1] = 0x34;
+			ptr_32[i+2] = 0x80;
+			ptr_32[i+3] = 0xFF;
+			//ptr_32[i] = float_to_fr32(0.0039); //0x92cb7f00
+			//ptr_32[i+1] = float_to_fr32(-0.0039); //0x6e3480ff
 		}
 		//memcpy(empty_buffer, dac_buffer, HAIP_ANALOG_BUFFER_SIZE);
 
 	}
-
+	memcpy(dac_buffer, ptr_32, HAIP_ANALOG_BUFFER_SIZE);
 	adi_ad1854_SubmitTxBuffer(dac_dev, dac_buffer, HAIP_ANALOG_BUFFER_SIZE);
 }
 
@@ -213,12 +220,12 @@ void output_digital(void) {
 	float threshold;
 	adi_uart_IsTxBufferAvailable(uart_dev, &uart_tx_free);
 	if (uart_tx_free) {
-		ptr_32 = (fract32 *) adc_buffer;
+		//ptr_32 = (fract32*) adc_entered;  IPINI BARRIRO!!!!!
 		adi_uart_GetTxBuffer(uart_dev, (void**) &uart_tx_buffer);
 		for (int i = 0; i < HAIP_UART_BUFFER_SIZE; ++i) {
-			prueba[i] = fr32_to_float(ptr_32[i]<<8);
-			threshold = prueba[i] * 50;
-			if (threshold < 1.0) {
+			prueba[i] = fr32_to_float(adc_entered[i]<<8);
+			threshold = prueba[i] * 10;
+			if (threshold > 1.0 || threshold < -1.0) {
 				threshold = 0;
 			} else if (probetako) {
 				threshold = 0;
@@ -238,8 +245,13 @@ void output_digital(void) {
 
 void read_analog_input(void) {
 	if (adc_buffer != NULL) {
-		output_digital();
+		memcpy(adc_entered,adc_buffer,HAIP_ANALOG_BUFFER_SIZE);
+		contadoreMierdosoa++;
+		if(contadoreMierdosoa > 5){
+			contadoreMierdosoa = 0;
+		}
 		adi_ad1871_SubmitRxBuffer(adc_dev, adc_buffer, HAIP_ANALOG_BUFFER_SIZE);
+		//output_digital();
 		adc_buffer = NULL;
 	}
 }
