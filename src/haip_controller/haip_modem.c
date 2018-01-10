@@ -88,33 +88,34 @@ void main(void) {
 	/* Flag which indicates whether to stop the program */
 	bool stop_flag = false;
 	haip_init_const();
-	modulated_in[0] = 0b01001101;
-	modulated_in[1] = 0b01001001;
-	modulated_in[2] = 0b01001011;
-	modulated_in[3] = 0b01000101;
-	modulated_in[4] = 0b00110010;
-	//memcpy(modulated_in,"MIKE2",5);
-	modulate_frame(modulated_in, 5, modulated_signal);
-	sync = haip_demodulate_head(modulated_signal, demodulated_out);
-	length = (demodulated_out[0] & 0xE0) >> 5;
-	length += HAIP_HEADER_AND_ADDR_LEN;
-	haip_demodulate_payload(modulated_signal, length, sync, demodulated_out);
-	printf("ss");
-	/*bool result = initialize_peripherals();
+	/*modulated_in[0] = 0b01001101;
+	 modulated_in[1] = 0b01001001;
+	 modulated_in[2] = 0b01001011;
+	 modulated_in[3] = 0b01000101;
+	 modulated_in[4] = 0b00110010;
+	 //memcpy(modulated_in,"MIKE2",5);
+	 modulate_frame(modulated_in, 5, modulated_signal);
+	 sync = haip_demodulate_head(modulated_signal, demodulated_out);
+	 length = (demodulated_out[0] & 0xE0) >> 5;
+	 length += HAIP_HEADER_AND_ADDR_LEN;
+	 haip_demodulate_payload(modulated_signal, length, sync, demodulated_out);
+	 printf("ss");
+	 */
+	bool result = initialize_peripherals();
 
-	 memcpy(entrada_test, "MIKE", 5);
-	 test_uart(entrada_test);
+	/*memcpy(entrada_test, "MIKE", 5);
+	test_uart(entrada_test);
+	*/
+	/* IF (Success) */
+	if (result == 0) {
+		haiptxrx_init_devices(h_uart_device, h_adi_1854_dac_device,
+				h_adi_1871_adc_device);
+		while (!stop_flag) {
+			haiptxrx_iterate();
+		}
+	}
 
-	 /* IF (Success) */
-	/*if (result == 0) {
-	 haiptxrx_init_devices(h_uart_device, h_adi_1854_dac_device,
-	 h_adi_1871_adc_device);
-	 while (!stop_flag) {
-	 haiptxrx_iterate();
-	 }
-	 }
-
-	 finalize_peripherals();*/
+	finalize_peripherals();
 
 }
 //#########################
