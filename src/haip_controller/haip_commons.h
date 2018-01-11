@@ -80,13 +80,17 @@
 #define HAIP_HEADER_AND_ADDR_LEN        (HAIP_FRAME_ORIG_LEN + HAIP_FRAME_DEST_LEN + HAIP_FRAME_HEADER_LEN)
 #define HAIP_FRAME_MAX_LEN                (HAIP_HEADER_AND_ADDR_LEN + HAIP_FRAME_CRC_LEN + HAIP_FRAME_DATA_MAX_LEN)
 
+#define HAIP_FRAME_MAX_SYMBOLS 			(HAIP_FRAME_MAX_LEN * HAIP_SYMBOLS_PER_BYTE * HAIP_CODING_RATE + HAIP_PREAMBLE_SYMBOLS)
+#define HAIP_FRAME_MAX_SAMPLES 			(HAIP_FRAME_MAX_SYMBOLS * HAIP_OVERSAMPLING_FACTOR)
+#define HAIP_FRAME_SAMPLES_W_COEFFS		(HAIP_FRAME_MAX_SAMPLES + 2*HAIP_SRCOS_COEFF_NUM)
+
 
 typedef struct haip_header_t {
     union {
         struct {
-            uint8_t len :HAIP_HEADER_LEN_LEN;
+        	uint8_t cnt :HAIP_HEADER_CNT_LEN;
             uint8_t type :HAIP_HEADER_TYPE_LEN;
-            uint8_t cnt :HAIP_HEADER_CNT_LEN;
+            uint8_t len :HAIP_HEADER_LEN_LEN;
         };
         uint8_t header;
     };
@@ -95,6 +99,8 @@ typedef struct haip_header_t {
 typedef struct haip_sync_t {
     uint8_t sample;
     double phase_off;
+    double att;
+    int start_indx;
 } haip_sync_t;
 
 //Mathematical constant
