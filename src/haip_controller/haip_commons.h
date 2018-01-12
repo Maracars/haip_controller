@@ -1,7 +1,3 @@
-//
-// Created by ander on 20/12/2017.
-//
-
 /*
  * HaipCommons.h
  *
@@ -42,7 +38,7 @@
 #define HAIP_DIGITAL_INPUT_TIMEOUT        0.02
 #define HAIP_DIGITAL_INPUT_BUFFER_SIZE    500
 #define HAIP_FRAME_BUFFER_SIZE            10
-#define HAIP_ANALOG_BUFFER_SIZE        65536*2
+#define HAIP_ANALOG_BUFFER_SIZE        65536
 #define HAIP_DAC_BUFFER_SIZE            900
 
 /* Add your custom header content here */
