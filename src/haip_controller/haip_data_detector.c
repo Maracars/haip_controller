@@ -13,9 +13,11 @@ double haip_update_avg(double old_avg, double new_value, double weight){
 int haip_next_data(fract32* input, int len, double avg, double margin){
 	int i = 0;
 	bool data_found = false;
+	double low_lim = avg - margin;
+	double high_lim = avg + margin;
 
 	for(i = 0; i < len; i++) {
-		if(fract32_to_float(input[i]) >= avg + margin){
+		if(fract32_to_float(input[i]) >=  high_lim || fract32_to_float(input[i]) <= low_lim){
 			data_found = true;
 			break;
 		}
