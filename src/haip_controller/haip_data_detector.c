@@ -7,7 +7,7 @@
 #include <fract_typedef.h>
 
 static double avg = 0;
-static double margin = 0.15;
+static double margin = 0.01;
 
 double update_avg(double old_avg, double new_value, double weight);
 
@@ -22,8 +22,8 @@ int haip_next_data(fract32* input, int len){
 	double low_lim = avg - margin;
 	double high_lim = avg + margin;
 
-	for(i = 0; i < len; i++) {
-		current = fr32_to_float(input[i]);
+	for(i = 0; i < len; i+=2) {
+		current = fr32_to_float(input[i] << 8);
 		sum += current;
 		if(current >=  high_lim || current <= low_lim){
 			data_found = true;
@@ -32,11 +32,15 @@ int haip_next_data(fract32* input, int len){
 	}
 
 	double curr_avg = sum / i;
-	avg = update_avg(avg, curr_avg, 0.5 - 0.5/(i+1));
+	avg = update_avg(avg, curr_avg, 0.7 - 0.7/(i+1));
 
 	if(data_found)
 		return i;
 	else
 		return -1;
 
+}
+
+fract32 haip_get_noise_level(){
+	return float_to_fr32(avg);
 }
