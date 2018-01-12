@@ -3,6 +3,7 @@
  */
 
 /*=============  I N C L U D E S   =============*/
+
 #include "haip_modem.h"
 /* Managed drivers and/or services include */
 #include "system/adi_initialize.h"
@@ -53,16 +54,10 @@ section ("sdram0") unsigned char entrada_test[BUFFER_SIZE];
 
 /* Audio data buffers */
 #pragma align 4
-section ("sdram0") uint8_t sep0[100];
 section ("sdram0") uint8_t analog_rx_buffer_1[HAIP_ANALOG_BUFFER_SIZE];
-section ("sdram0") uint8_t sep1[100];
 section ("sdram0") uint8_t analog_rx_buffer_2[HAIP_ANALOG_BUFFER_SIZE];
-section ("sdram0") uint8_t sep2[100];
 section ("sdram0") uint8_t analog_tx_buffer_1[HAIP_ANALOG_BUFFER_SIZE];
-section ("sdram0") uint8_t sep3[100];
 section ("sdram0") uint8_t analog_tx_buffer_2[HAIP_ANALOG_BUFFER_SIZE];
-section ("sdram0") uint8_t sep4[100];
-
 
 /* Rx and Tx buffers */
 char buffer_tx_1[BUFFER_SIZE];
@@ -82,46 +77,58 @@ static uint8_t reserved_uart_memory[ADI_UART_BIDIR_DMA_MEMORY_SIZE];
 //#########################
 // ======= M A I N ========
 //#########################
-segment ("sdram0") static fract32 modulated_signal[40 * 8 + 49];
-segment ("sdram0") static unsigned char demodulated_out[25];
+segment ("sdram0") static fract32 modulated_signal[HAIP_FRAME_SAMPLES_W_COEFFS];
+segment ("sdram0") static unsigned char demodulated_out[30];
+
 void main(void) {
-	fract32 modulated_out[HAIP_TX_PACKET_LENGTH];
-	unsigned char modulated_in[5];
+
+	haip_init_demodulator();
+	haip_init_const();
+
+	fract32 modulated_out[HAIP_FRAME_SAMPLES_W_COEFFS];
+	unsigned char modulated_in[HAIP_FRAME_MAX_LEN];
 	haip_sync_t sync;
-	int length = 0;
+	int length = 11;
 
 	/* Flag which indicates whether to stop the program */
 	bool stop_flag = false;
-	//demodulated_out[30] = 1;
-	haip_init_const();
-	/*modulated_in[0] = 0b01001101;
-	 modulated_in[1] = 0b01001001;
-	 modulated_in[2] = 0b01001011;
-	 modulated_in[3] = 0b01000101;
-	 modulated_in[4] = 0b00110010;
-	 //memcpy(modulated_in,"MIKE2",5);
-	 modulate_frame(modulated_in, 5, modulated_signal);
-	 sync = haip_demodulate_head(modulated_signal, demodulated_out);
-	 length = (demodulated_out[0] & 0xE0) >> 5;
-	 length += HAIP_HEADER_AND_ADDR_LEN;
-	 haip_demodulate_payload(modulated_signal, length, sync, demodulated_out);
-	 printf("ss");
-	 */
-	bool result = initialize_peripherals();
 
-	memcpy(entrada_test, "MIKE", 5);
-	test_uart(entrada_test);
+	modulated_in[0] = 0b11101101;
+	modulated_in[1] = 0b01001001;
+	modulated_in[2] = 0b01001011;
+	modulated_in[3] = 0b01000101;
+	modulated_in[4] = 0b01000101;
+	modulated_in[5] = 0b01000101;
+	modulated_in[6] = 0b01000101;
+	modulated_in[7] = 0b01000101;
+	modulated_in[8] = 0b01000101;
+	modulated_in[9] = 0b01000101;
+	modulated_in[10] = 0b00110010;
 
-	/* IF (Success) */
-	if (result == 0) {
-		haiptxrx_init_devices(h_uart_device, h_adi_1854_dac_device,
-				h_adi_1871_adc_device);
-		while (!stop_flag) {
-			haiptxrx_iterate();
-		}
-	}
 
-	finalize_peripherals();
+	haip_modulate_frame(modulated_in, length, modulated_signal);
+
+	sync = haip_demodulate_head(modulated_signal, demodulated_out);
+	length = ((haip_header_t*) &demodulated_out[0])->len;
+	length += HAIP_HEADER_AND_ADDR_LEN + HAIP_FRAME_CRC_LEN;
+	haip_demodulate_payload(modulated_signal, length, sync, demodulated_out);
+
+	printf("mierda");
+	/*bool result = initialize_peripherals();
+
+	 memcpy(entrada_test, "MIKE", 5);
+	 test_uart(entrada_test);
+
+	 //IF (Success)
+	/*if (result == 0) {
+	 haiptxrx_init_devices(h_uart_device, h_adi_1854_dac_device,
+	 h_adi_1871_adc_device);
+	 while (!stop_flag) {
+	 haiptxrx_iterate();
+	 }
+	 }
+
+	 finalize_peripherals();*/
 
 }
 //#########################
