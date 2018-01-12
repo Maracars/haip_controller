@@ -15,7 +15,8 @@
 section ("sdram0") unsigned char digital_input_buffer[HAIP_UART_BUFFER_SIZE];
 double last_digital_input_t = 0;
 section ("sdram0") unsigned char frame_buffer[HAIP_FRAME_BUFFER_SIZE][HAIP_FRAME_LENGTH_MAX];
-section ("sdram0") 	fract32 shit[HAIP_ANALOG_BUFFER_SIZE/4];
+section ("sdram0") fract32 shit_left[HAIP_ANALOG_BUFFER_SIZE / 4];
+section ("sdram0") fract32 shit_right[HAIP_ANALOG_BUFFER_SIZE / 4];
 
 //section ("sdram0") fract32 output_buffer[HAIP_DAC_BUFFER_SIZE];
 void *uart_rx_buffer, *adc_buffer, *dac_buffer, *uart_tx_buffer;
@@ -31,13 +32,14 @@ section ("sdram0") unsigned char uart_test[HAIP_UART_BUFFER_SIZE];
 
 section ("sdram0") fract32 tmp_buffer[40 * 8 + 49];
 section ("sdram0") unsigned char adc_entered[HAIP_ANALOG_BUFFER_SIZE];
+section ("sdram0") unsigned char demodulated_out[30];
 
 int contar = 0;
 bool uart_has_buffer_ready;
 bool adcAvailable = true;
 bool probetako = false;
 
-section ("sdram0") fract32 ptr_32[HAIP_ANALOG_BUFFER_SIZE/4];
+section ("sdram0") fract32 ptr_32[HAIP_ANALOG_BUFFER_SIZE / 4];
 
 //Declarations
 bool has_tx_frame_ready(void);
@@ -187,15 +189,15 @@ void send_dac(bool do_send) {
 	//fract32* fr32_buffer = (fract32*) dac_buffer;
 	//ptr_32 = (fract32 *) dac_buffer;
 	if (do_send) {
-		fract32 kk = haip_modulate_frame(digital_input_buffer, 5, tmp_buffer);
-		for (i = 0; i < HAIP_ANALOG_BUFFER_SIZE/4; i++) {
-			if((i< ((5*2*2)+8)*8+49)){
-				ptr_32[i+1] = (tmp_buffer[i]>>8);
-				//ptr_32[i/8] = (float_to_fr32(0.9)>>8);
+		fract32 kk = haip_modulate_frame(digital_input_buffer, 6, tmp_buffer);
+		for (i = 0; i < HAIP_ANALOG_BUFFER_SIZE / 4; i = i + 2) {
+			if (((i/2) < ((6 * 2 * 2) + 8) * 8 + 49)) {
+				ptr_32[i] = (tmp_buffer[i / 2] >> 8);
+				ptr_32[i + 1] = (tmp_buffer[i / 2] >> 8);//(float_to_fr32(0.9)>>8);
 				j++;
 			} else {
 				ptr_32[i] = 0;
-				ptr_32[i+1] = 0;
+				ptr_32[i + 1] = 0;
 			}
 			//ptr_32[i] = digital_input_buffer[j];
 			/*if (i >= ((5 * 2 * 2 + 8) * 8 + 49)
@@ -211,33 +213,33 @@ void send_dac(bool do_send) {
 
 		for (i = 0; i < HAIP_ANALOG_BUFFER_SIZE / 4; i++) {
 			ptr_32[i] = float_to_fr32(0) >> 8;
-			ptr_32[i+1] = float_to_fr32(0) >> 8;
-			ptr_32[i+2] = float_to_fr32(0) >> 8;
-			ptr_32[i+3] = float_to_fr32(0) >> 8;
+			ptr_32[i + 1] = float_to_fr32(0) >> 8;
+			ptr_32[i + 2] = float_to_fr32(0) >> 8;
+			ptr_32[i + 3] = float_to_fr32(0) >> 8;
 			i++;
 			i++;
 			i++;
 
 			/*ptr_32[i + 0] = 0x00;
-			ptr_32[i + 1] = 0x7F;
-			ptr_32[i + 2] = 0xFF;
-			ptr_32[i + 3] = 0xFF;
+			 ptr_32[i + 1] = 0x7F;
+			 ptr_32[i + 2] = 0xFF;
+			 ptr_32[i + 3] = 0xFF;
 
-			ptr_32[i + 4] = 0xFF;
-			ptr_32[i + 5] = 0xFF;
-			ptr_32[i + 6] = 0xFF;
-			ptr_32[i + 7] = 0xFF;
+			 ptr_32[i + 4] = 0xFF;
+			 ptr_32[i + 5] = 0xFF;
+			 ptr_32[i + 6] = 0xFF;
+			 ptr_32[i + 7] = 0xFF;
 
-			ptr_32[i + 8] = 0xFF;
-			ptr_32[i + 9] = 0xFF;
-			ptr_32[i + 10] = 0xFF;
-			ptr_32[i + 11] = 0xFF;
+			 ptr_32[i + 8] = 0xFF;
+			 ptr_32[i + 9] = 0xFF;
+			 ptr_32[i + 10] = 0xFF;
+			 ptr_32[i + 11] = 0xFF;
 
-			ptr_32[i + 12] = 0x00;
-			ptr_32[i + 13] = 0x7F;
-			ptr_32[i + 14] = 0xFF;
-			ptr_32[i + 15] = 0xFF;
-*/
+			 ptr_32[i + 12] = 0x00;
+			 ptr_32[i + 13] = 0x7F;
+			 ptr_32[i + 14] = 0xFF;
+			 ptr_32[i + 15] = 0xFF;
+			 */
 			//float_to_fr32(0.9); //0x92cb7f00
 			//ptr_32[i+1] = float_to_fr32(-0.9); //0x6e3480ff
 		}
@@ -260,51 +262,80 @@ void output_digital(void) {
 	bool uart_tx_free = 0;
 	float threshold;
 	int kont = 0;
+	haip_sync_t sync;
+	int length = 0;
+	int offsets = 0;
+	unsigned char *tmp_uart;
+	float a = 0;
+
 	adi_uart_IsTxBufferAvailable(uart_dev, &uart_tx_free);
 	if (uart_tx_free) {
 		//heldu = (fract32*) adc_entered;
-		for (int i = 0; i < HAIP_ANALOG_BUFFER_SIZE/4; ++i) {
-			shit[i] = (ptr_32[i]) << 8;
-			if((fr32_to_float(shit[i])> 0.2) || (fr32_to_float(shit[i]) < -0.2)){
+		for (int i = 0; i < HAIP_ANALOG_BUFFER_SIZE / 4; i++) {
+			if (i % 2) {
+				shit_right[i / 2] = (ptr_32[i]) << 8;
+			} else {
+				shit_left[i / 2] = (ptr_32[i]) << 8;
+			}
+			if ((fr32_to_float(shit_left[i / 2]) > 0.2)
+					|| (fr32_to_float(shit_left[i / 2]) < -0.2)) {
+				a = fr32_to_float(shit_left[i / 2]);
+				if (!offsets)
+					offsets = i / 2;
 				kont++;
 			}
 		}
-		if(kont){
-			kont=0;
+		/*if (kontadorea > 20) {
+		 kontadorea = 0;
+		 }*/
+		if (kont) {
+			sync = haip_demodulate_head(&shit_left[offsets], demodulated_out);
+			length = ((haip_header_t*) &demodulated_out[0])->len;
+			length += HAIP_HEADER_AND_ADDR_LEN + HAIP_FRAME_CRC_LEN;
+			haip_demodulate_payload(&shit_left[offsets], length, sync,
+					demodulated_out);
+			tmp_uart = (unsigned char*) uart_tx_buffer;
+			adi_uart_GetTxBuffer(uart_dev, (void**) &uart_tx_buffer);
+			for (int r = 0; r < HAIP_UART_BUFFER_SIZE; ++r) {
+				if (r < length) {
+					tmp_uart[r] = demodulated_out[r];
+				} else {
+					tmp_uart[r] = 0;
+				}
+			}
+			memcpy(uart_tx_buffer, demodulated_out, HAIP_UART_BUFFER_SIZE);
+			adi_uart_SubmitTxBuffer(uart_dev, uart_tx_buffer,
+			HAIP_UART_BUFFER_SIZE);
+			kont = 0;
 		}
-		if (kontadorea > 20) {
-					kontadorea = 0;
-		}
-		adi_uart_GetTxBuffer(uart_dev, (void**) &uart_tx_buffer);
-		/*for (int i = 0; i < HAIP_UART_BUFFER_SIZE; ++i) {
-		 prueba[i] = fr32_to_float(adc_entered[i]<<8);
-		 threshold = prueba[i] * 10;
-		 if (threshold > 1.0 || threshold < -1.0) {
-		 threshold = 0;
-		 } else if (probetako) {
-		 threshold = 0;
-		 } else {
-		 threshold = 0;
-
-		 }
-		 }
-		 if (probetako) {
-		 threshold = 0;
-		 }
-		 sync = haip_demodulate_head(modulated_signal, demodulated_out);
-	length = ((haip_header_t*) &demodulated_out[0])->len;
-	length += HAIP_HEADER_AND_ADDR_LEN + HAIP_FRAME_CRC_LEN;
-haip_demodulate_payload(modulated_signal, length, sync, demodulated_out);
-		 */
-		memcpy(uart_tx_buffer, adc_entered, HAIP_UART_BUFFER_SIZE);
-		adi_uart_SubmitTxBuffer(uart_dev, uart_tx_buffer,
-		HAIP_UART_BUFFER_SIZE);
 	}
+
+	/*for (int i = 0; i < HAIP_UART_BUFFER_SIZE; ++i) {
+	 prueba[i] = fr32_to_float(adc_entered[i]<<8);
+	 threshold = prueba[i] * 10;
+	 if (threshold > 1.0 || threshold < -1.0) {
+	 threshold = 0;
+	 } else if (probetako) {
+	 threshold = 0;
+	 } else {
+	 threshold = 0;
+
+	 }
+	 }
+	 if (probetako) {
+	 threshold = 0;
+	 }
+	 sync = haip_demodulate_head(modulated_signal, demodulated_out);
+	 length = ((haip_header_t*) &demodulated_out[0])->len;
+	 length += HAIP_HEADER_AND_ADDR_LEN + HAIP_FRAME_CRC_LEN;
+	 haip_demodulate_payload(modulated_signal, length, sync, demodulated_out);
+	 */
+
 }
 
 void read_analog_input(void) {
 	if (adc_buffer != NULL) {
-		memcpy(ptr_32, adc_buffer, HAIP_ANALOG_BUFFER_SIZE/4);
+		memcpy(ptr_32, adc_buffer, HAIP_ANALOG_BUFFER_SIZE / 4);
 		kontadorea++;
 		if (kontadorea > 20) {
 			kontadorea = 25;
