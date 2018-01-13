@@ -91,30 +91,9 @@ void main(void) {
 	/* Flag which indicates whether to stop the program */
 	bool stop_flag = false;
 
-	/*modulated_in[0] = 0b11101101;
-	 modulated_in[1] = 0b01001001;
-	 modulated_in[2] = 0b01001011;
-	 modulated_in[3] = 0b01000101;
-	 modulated_in[4] = 0b01000101;
-	 modulated_in[5] = 0b01000101;
-	 modulated_in[6] = 0b01000101;
-	 modulated_in[7] = 0b01000101;
-	 modulated_in[8] = 0b01000101;
-	 modulated_in[9] = 0b01000101;
-	 modulated_in[10] = 0b00110010;
-
-
-	 haip_modulate_frame(modulated_in, length, modulated_signal);
-
-	 sync = haip_demodulate_head(modulated_signal, demodulated_out);
-	 length = ((haip_header_t*) &demodulated_out[0])->len;
-	 length += HAIP_HEADER_AND_ADDR_LEN + HAIP_FRAME_CRC_LEN;
-	 haip_demodulate_payload(modulated_signal, length, sync, demodulated_out);
-
-	 printf("mierda");
-	 */
 	bool result = initialize_peripherals();
 
+	//TODO kendu hau pruebea, oin balio dau ikusteko programea ejekutau dala
 	memcpy(entrada_test, "MIKE", 5);
 	test_uart(entrada_test);
 

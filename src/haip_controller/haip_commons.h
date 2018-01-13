@@ -41,6 +41,8 @@
 #define HAIP_ANALOG_BUFFER_SIZE        65536
 #define HAIP_DAC_BUFFER_SIZE            900
 
+#define HAIP_MAX_FRAMES 10
+
 /* Add your custom header content here */
 #define HAIP_SAMPLING_FREQ                    48000//Hz
 #define HAIP_CARRIER_FREQ                    6000//Hz
