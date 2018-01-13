@@ -17,7 +17,7 @@ int haip_next_data(fract32* input, int len, double avg, double margin){
 	double high_lim = avg + margin;
 
 	for(i = 0; i < len; i++) {
-		if(fract32_to_float(input[i]) >=  high_lim || fract32_to_float(input[i]) <= low_lim){
+		if(fr32_to_float(input[i]) >=  high_lim || fr32_to_float(input[i]) <= low_lim){
 			data_found = true;
 			break;
 		}

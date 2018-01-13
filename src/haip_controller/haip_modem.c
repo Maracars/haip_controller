@@ -50,7 +50,7 @@ static ADI_AD1854_HANDLE h_adi_1854_dac_device;
 
 /*=============  D A T A  =============*/
 
-section ("sdram0") unsigned char entrada_test[BUFFER_SIZE];
+section ("sdram0") unsigned char entrada_test[HAIP_UART_BUFFER_SIZE];
 
 /* Audio data buffers */
 #pragma align 4
@@ -60,10 +60,10 @@ section ("sdram0") uint8_t analog_tx_buffer_1[HAIP_ANALOG_BUFFER_SIZE];
 section ("sdram0") uint8_t analog_tx_buffer_2[HAIP_ANALOG_BUFFER_SIZE];
 
 /* Rx and Tx buffers */
-char buffer_tx_1[BUFFER_SIZE];
-char buffer_tx_2[BUFFER_SIZE];
-char buffer_rx_1[BUFFER_SIZE];
-char buffer_rx_2[BUFFER_SIZE];
+char buffer_tx_1[HAIP_UART_BUFFER_SIZE];
+char buffer_tx_2[HAIP_UART_BUFFER_SIZE];
+char buffer_rx_1[HAIP_UART_BUFFER_SIZE];
+char buffer_rx_2[HAIP_UART_BUFFER_SIZE];
 
 /* Memory required to handle an AD1871 device instance */
 static uint8_t reserved_1871_adc_memory[ADI_AD1871_MEMORY_SIZE];
@@ -143,8 +143,8 @@ void test_uart(unsigned char* buffer) {
 		adi_uart_IsTxBufferAvailable(h_uart_device, &enviar);
 	}
 	adi_uart_GetTxBuffer(h_uart_device, (void**) &UBufferBidali);
-	memcpy(UBufferBidali, buffer, BUFFER_SIZE);
-	adi_uart_SubmitTxBuffer(h_uart_device, UBufferBidali, BUFFER_SIZE);
+	memcpy(UBufferBidali, buffer, HAIP_UART_BUFFER_SIZE);
+	adi_uart_SubmitTxBuffer(h_uart_device, UBufferBidali, HAIP_UART_BUFFER_SIZE);
 }
 
 /* Closes peripherals */
@@ -269,10 +269,10 @@ bool initialize_peripherals() {
 
 	//printf("Setup terminal on PC as described in Readme file. \n\n");
 
-	adi_uart_SubmitTxBuffer(h_uart_device, buffer_tx_1, BUFFER_SIZE);
-	adi_uart_SubmitRxBuffer(h_uart_device, buffer_tx_2, BUFFER_SIZE);
-	adi_uart_SubmitTxBuffer(h_uart_device, buffer_rx_1, BUFFER_SIZE);
-	adi_uart_SubmitRxBuffer(h_uart_device, buffer_rx_2, BUFFER_SIZE);
+	adi_uart_SubmitTxBuffer(h_uart_device, buffer_tx_1, HAIP_UART_BUFFER_SIZE);
+	adi_uart_SubmitRxBuffer(h_uart_device, buffer_tx_2, HAIP_UART_BUFFER_SIZE);
+	adi_uart_SubmitTxBuffer(h_uart_device, buffer_rx_1, HAIP_UART_BUFFER_SIZE);
+	adi_uart_SubmitRxBuffer(h_uart_device, buffer_rx_2, HAIP_UART_BUFFER_SIZE);
 
 	eResult = adi_uart_EnableTx(h_uart_device, true);
 	eResult = adi_uart_EnableRx(h_uart_device, true);
