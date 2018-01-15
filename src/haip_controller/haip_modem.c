@@ -60,8 +60,8 @@ section ("sdram0") uint8_t analog_tx_buffer_1[HAIP_ANALOG_BUFFER_SIZE];
 section ("sdram0") uint8_t analog_tx_buffer_2[HAIP_ANALOG_BUFFER_SIZE];
 
 /* Rx and Tx buffers */
-char buffer_tx_1[HAIP_UART_BUFFER_SIZE];
-char buffer_tx_2[HAIP_UART_BUFFER_SIZE];
+char buffer_tx_1[HAIP_FRAME_MAX_LEN];
+char buffer_tx_2[HAIP_FRAME_MAX_LEN];
 char buffer_rx_1[HAIP_UART_BUFFER_SIZE];
 char buffer_rx_2[HAIP_UART_BUFFER_SIZE];
 
@@ -122,8 +122,8 @@ void test_uart(unsigned char* buffer) {
 		adi_uart_IsTxBufferAvailable(h_uart_device, &enviar);
 	}
 	adi_uart_GetTxBuffer(h_uart_device, (void**) &UBufferBidali);
-	memcpy(UBufferBidali, buffer, HAIP_UART_BUFFER_SIZE);
-	adi_uart_SubmitTxBuffer(h_uart_device, UBufferBidali, HAIP_UART_BUFFER_SIZE);
+	memcpy(UBufferBidali, buffer, HAIP_FRAME_MAX_LEN);
+	adi_uart_SubmitTxBuffer(h_uart_device, UBufferBidali, HAIP_FRAME_MAX_LEN);
 }
 
 /* Closes peripherals */
@@ -248,9 +248,9 @@ bool initialize_peripherals() {
 
 	//printf("Setup terminal on PC as described in Readme file. \n\n");
 
-	adi_uart_SubmitTxBuffer(h_uart_device, buffer_tx_1, HAIP_UART_BUFFER_SIZE);
+	adi_uart_SubmitTxBuffer(h_uart_device, buffer_tx_1, HAIP_FRAME_MAX_LEN);
 	adi_uart_SubmitRxBuffer(h_uart_device, buffer_tx_2, HAIP_UART_BUFFER_SIZE);
-	adi_uart_SubmitTxBuffer(h_uart_device, buffer_rx_1, HAIP_UART_BUFFER_SIZE);
+	adi_uart_SubmitTxBuffer(h_uart_device, buffer_rx_1, HAIP_FRAME_MAX_LEN);
 	adi_uart_SubmitRxBuffer(h_uart_device, buffer_rx_2, HAIP_UART_BUFFER_SIZE);
 
 	eResult = adi_uart_EnableTx(h_uart_device, true);
