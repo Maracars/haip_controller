@@ -94,7 +94,7 @@ void main(void) {
 	bool result = initialize_peripherals();
 
 	//TODO kendu hau pruebea, oin balio dau ikusteko programea ejekutau dala
-	memcpy(entrada_test, "MIKE", 5);
+	memcpy(entrada_test, "H", 1);
 	test_uart(entrada_test);
 
 	//IF (Success)

@@ -34,7 +34,7 @@ unsigned char decode_hamming(unsigned char b);
 
 void haip_hamming_7_4_ext_code(const unsigned char *input_bytes, unsigned char *output_bytes, int len) {
     int i = 0;
-    for (; i < len; i++) {
+    for (i = 0; i < len; i++) {
         if (i % 2)
             output_bytes[i] = code_ext_hamming(input_bytes[i/2] & (unsigned char) 0x0F);
         else
@@ -49,7 +49,7 @@ haip_hamming_7_4_ext_decode(const unsigned char *input_bytes, unsigned char *out
     int ret = 0;
     unsigned char corrected, decoded;
 
-    for (; i < len; i++) {
+    for (i = 0; i < len; i++) {
         int hamm_not_ok = check_and_correct_hamming(input_bytes[i], &corrected);
         if (hamm_not_ok) {
             int parity_ok = check_parity(corrected);

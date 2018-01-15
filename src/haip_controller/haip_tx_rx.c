@@ -23,6 +23,7 @@ void *uart_rx_buffer, *adc_buffer, *dac_buffer, *uart_tx_buffer;
 
 int frame_count = 0;
 int kontadorea = 0;
+int kont_debug_byte = 0;
 
 static ADI_UART_HANDLE uart_dev;
 static ADI_AD1871_HANDLE dac_dev;
@@ -94,32 +95,36 @@ void read_digital_input(void) {
 void process_digital_input(unsigned char* buffer, int size) {
 	int length = 0;
 	int processed_bytes = 0;
-	while (processed_bytes < size) {
-		if (!halfPacket) {
-			length =
-					((haip_header_t*) &digital_input_buffer[processed_bytes])->len;
-			length += HAIP_HEADER_AND_ADDR_LEN + HAIP_FRAME_CRC_LEN;
-		} else {
-			length = halfPacketLeft;
-		}
 
-		processed_bytes += length;
+	//while (processed_bytes < size) {
+	if (!halfPacket) {
+		length = ((haip_header_t*) &digital_input_buffer[0])->len;
+		length += HAIP_HEADER_AND_ADDR_LEN + HAIP_FRAME_CRC_LEN;
+	} else {
+		length = halfPacketLeft;
+	}
 
-		memcpy(
-				&(frame_buffer[send_list_offset + frame_count][alreadyCopiedOffset]),
-				&(digital_input_buffer[processed_bytes - length]), length);
+	//processed_bytes += length;
 
-		if (processed_bytes > HAIP_UART_BUFFER_SIZE) {
-			halfPacket = true;
-			halfPacketLeft = processed_bytes - HAIP_UART_BUFFER_SIZE;
-			alreadyCopiedOffset = length - halfPacketLeft;
-		} else {
-			frame_count++;
-			halfPacket = false;
-			alreadyCopiedOffset = 0;
-			halfPacketLeft = 0;
-		}
+	//TODO: send_list_offset + frame_count > HAIP_MAX_FRAME
+	memcpy(&(frame_buffer[send_list_offset + frame_count][alreadyCopiedOffset]),
+			&(digital_input_buffer[0]), size);
 
+	halfPacketLeft = length - size;
+	alreadyCopiedOffset += size;
+	if (halfPacketLeft != 0) {
+		halfPacket = true;
+	} else {
+		frame_count++;
+		halfPacket = false;
+		alreadyCopiedOffset = 0;
+	}
+
+	//}
+
+	kont_debug_byte++;
+	if (kont_debug_byte == 6) {
+		kont_debug_byte = 0;
 	}
 
 	/*if (check_timeout(last_digital_input_t, DIGITAL_INPUT_TIMEOUT,
@@ -209,7 +214,7 @@ void send_dac(bool do_send) {
 		fract32 kk = haip_modulate_frame(frame_buffer[send_list_offset], length,
 				modulated_frame);
 
-		if(send_list_offset == HAIP_MAX_FRAMES){
+		if (send_list_offset == (HAIP_MAX_FRAMES - 1)) {
 			send_list_offset = 0;
 		} else {
 			send_list_offset++;
@@ -305,11 +310,18 @@ void process_adc_input(void) {
 void output_digital(int frame_length) {
 	bool uart_tx_free = 0;
 	int i = 0;
-	adi_uart_IsTxBufferAvailable(uart_dev, &uart_tx_free);
+	int send_bytes = 0;
+	ADI_UART_RESULT result = adi_uart_IsTxBufferAvailable(uart_dev, &uart_tx_free);
 	if (uart_tx_free) {
 		adi_uart_GetTxBuffer(uart_dev, (void**) &uart_tx_buffer);
-		memcpy(uart_tx_buffer, demodulated_out, frame_length);
-		adi_uart_SubmitTxBuffer(uart_dev, uart_tx_buffer, frame_length);
-	}
+		for (i = 0; i < frame_length; ++i) {
 
+			memcpy(uart_tx_buffer, &(demodulated_out[send_bytes]),
+			HAIP_UART_BUFFER_SIZE);
+			adi_uart_SubmitTxBuffer(uart_dev, uart_tx_buffer,
+			HAIP_UART_BUFFER_SIZE);
+			send_bytes += HAIP_UART_BUFFER_SIZE;
+		}
+
+	}
 }
