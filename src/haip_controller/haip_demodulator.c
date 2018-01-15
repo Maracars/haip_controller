@@ -62,7 +62,8 @@ void haip_init_demodulator() {
 haip_sync_t haip_demodulate_head(fract32* analog_data, unsigned char* output_digital_data) {
 	haip_sync_t sync;
 
-	get_quadrature_inphase(analog_data,	HAIP_DEMOD_HEADER_SAMPLES + HAIP_SRCOS_COEFF_NUM * 2, analog_samples_r, analog_samples_i); //demodulate
+	//TODO: Se ha quitado el *2 de COEFF_NUM
+	get_quadrature_inphase(analog_data,	HAIP_DEMOD_HEADER_SAMPLES + HAIP_SRCOS_COEFF_NUM*2, analog_samples_r, analog_samples_i); //demodulate
 	filter_sqrcosine(analog_samples_r, analog_samples_i, HAIP_DEMOD_HEADER_SAMPLES, filtered_samples_r, filtered_samples_i, true); //filter
 	sync = syncronize_with_preamble(filtered_samples_r, filtered_samples_i); //sync
 	subsample(filtered_samples_r, filtered_samples_i, sync.sample, HAIP_OVERSAMPLING_FACTOR, HAIP_DEMOD_HEADER_SAMPLES, subsamples, DELAY, sync.att); //subsample

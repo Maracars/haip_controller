@@ -7,7 +7,8 @@
 
 #include "fract_typedef.h"
 
-double haip_update_avg(double old_avg, double new_value, double weight);
-int haip_next_data(fract32* input, int len, double avg, double margin);
+int haip_next_data(fract32* input, int len);
+void haip_detector_config(double new_margin, double update_weight);
+fract32 haip_get_noise_lvl_fr32(void);
 
 #endif //PRUEBAS_C_HAIP_DATA_DETECTOR_H
