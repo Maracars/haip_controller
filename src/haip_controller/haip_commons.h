@@ -25,7 +25,7 @@
 /* Baud rate to be used for char echo */
 #define HAIP_BAUD_RATE                9600u
 
-#define HAIP_UART_BUFFER_SIZE            11
+#define HAIP_UART_BUFFER_SIZE            1
 #define HAIP_UART_DEV_NUM                0
 #define HAIP_FRAME_LENGTH_MIN            5
 #define HAIP_FRAME_LENGTH_MAX            260
