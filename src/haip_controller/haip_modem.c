@@ -94,7 +94,7 @@ void main(void) {
 	bool result = initialize_peripherals();
 
 	//TODO kendu hau pruebea, oin balio dau ikusteko programea ejekutau dala
-	memcpy(entrada_test, "H", 1);
+	memcpy(entrada_test, "MIKE", 5);
 	test_uart(entrada_test);
 
 	//IF (Success)
@@ -249,8 +249,8 @@ bool initialize_peripherals() {
 	//printf("Setup terminal on PC as described in Readme file. \n\n");
 
 	adi_uart_SubmitTxBuffer(h_uart_device, buffer_tx_1, HAIP_FRAME_MAX_LEN);
-	adi_uart_SubmitRxBuffer(h_uart_device, buffer_tx_2, HAIP_UART_BUFFER_SIZE);
-	adi_uart_SubmitTxBuffer(h_uart_device, buffer_rx_1, HAIP_FRAME_MAX_LEN);
+	adi_uart_SubmitTxBuffer(h_uart_device, buffer_tx_2, HAIP_FRAME_MAX_LEN);
+	adi_uart_SubmitRxBuffer(h_uart_device, buffer_rx_1, HAIP_UART_BUFFER_SIZE);
 	adi_uart_SubmitRxBuffer(h_uart_device, buffer_rx_2, HAIP_UART_BUFFER_SIZE);
 
 	eResult = adi_uart_EnableTx(h_uart_device, true);
