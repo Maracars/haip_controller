@@ -99,6 +99,10 @@ void filter_sqrcosine(fract32* raw_samples_r, fract32* raw_samples_i, int len, f
 		delay_real[i] = 0;
 		delay_imag[i] = 0;
 	}
+	for (i = 0; i < (len + (HAIP_SRCOS_COEFF_NUM * 2)); i++){
+		filtered_samples_r[i]=0;
+		filtered_samples_i[i]=0;
+	}
 
 	/* Paketean tamañue pasau eta hori aldatu 160 gaitik
 	 * If bet ipini aurretik jakiteko headerra edo payload demoduletan gabizen*/
