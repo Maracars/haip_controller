@@ -35,6 +35,7 @@ segment ("sdram0") fract32 adj_const[16][2]; //16 QAM constelation inverted so t
 segment ("sdram0") complex_fract32 inv_preamble[HAIP_PREAMBLE_SYMBOLS];
 segment ("sdram0") complex_fract32 delay_fir[HAIP_PREAMBLE_SYMBOLS];
 
+//Filter states
 fir_state_fr32 dem_state_real;
 fir_state_fr32 dem_state_imag;
 
@@ -98,6 +99,7 @@ void get_quadrature_inphase(fract32* analog_data, int buffer_len, fract32* raw_s
 void filter_sqrcosine(fract32* raw_samples_r, fract32* raw_samples_i, int len, fract32* filtered_samples_r, fract32* filtered_samples_i, bool dem_header) {
 
 	int i;
+	int frame_length;
 
 	for (i = 0; i < HAIP_SRCOS_COEFF_NUM; i++) {
 		delay_real[i] = 0;
@@ -108,10 +110,10 @@ void filter_sqrcosine(fract32* raw_samples_r, fract32* raw_samples_i, int len, f
 		filtered_samples_i[i] = 0;
 	}
 
-	/* Paketean tamañue pasau eta hori aldatu 160 gaitik
-	 * If bet ipini aurretik jakiteko headerra edo payload demoduletan gabizen*/
+	/*If it is demodulating the header, init the filters, otherwise, ensure that the limits are cleared*/
 	if (!dem_header) {
-		for (i = len; i < (len + (HAIP_SRCOS_COEFF_NUM * 2)); i++) {
+		frame_length = len + ((HAIP_PREAMBLE_SYMBOLS + HAIP_HEADER_AND_ADDR_LEN) * HAIP_OVERSAMPLING_FACTOR);
+		for (i = frame_length; i < (frame_length + (HAIP_SRCOS_COEFF_NUM * 2)); i++) {
 			raw_samples_r[i] = 0;
 			raw_samples_i[i] = 0;
 		}
@@ -197,7 +199,7 @@ void demap_16QAM(complex_fract32* analog_samples, int len, double phase_off, uns
 	for (i = 0; i < len / HAIP_SYMBOLS_PER_BYTE; ++i) {
 		data[i] = 0;
 	}
-	for (; i < len; i++) {
+	for (i = 0; i < len; i++) {
 		mindist = 200; //Big number
 		for (j = 0; j < HAIP_SYMBOLS_16QAM; j++) {
 			dist = calc_dist(adj_const[j], analog_samples[i]);

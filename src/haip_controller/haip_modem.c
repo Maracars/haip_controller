@@ -35,8 +35,6 @@ static uint32_t init_1871_adc(void);
 static uint32_t init_1854_dac(void);
 /*Initializes the system, UART communication and ADC/DAC devices*/
 bool initialize_peripherals(void);
-/* Sends a test message through UART */
-void test_uart(unsigned char* buffer);
 /* Closes peripherals */
 void finalize_peripherals(void);
 
@@ -59,7 +57,7 @@ section ("sdram0") uint8_t analog_rx_buffer_2[HAIP_ANALOG_BUFFER_SIZE];
 section ("sdram0") uint8_t analog_tx_buffer_1[HAIP_ANALOG_BUFFER_SIZE];
 section ("sdram0") uint8_t analog_tx_buffer_2[HAIP_ANALOG_BUFFER_SIZE];
 
-/* Rx and Tx buffers */
+/*UART Rx and Tx buffers */
 char buffer_tx_1[HAIP_FRAME_MAX_LEN];
 char buffer_tx_2[HAIP_FRAME_MAX_LEN];
 char buffer_rx_1[HAIP_UART_BUFFER_SIZE];
@@ -82,10 +80,6 @@ void main(void) {
 
 	haip_init_demodulator();
 	haip_init_const();
-	fract32 modulated_out[HAIP_FRAME_SAMPLES_W_COEFFS];
-	unsigned char modulated_in[HAIP_FRAME_MAX_LEN];
-	haip_sync_t sync;
-	int length = 11;
 
 	/* Flag which indicates whether to stop the program */
 	bool stop_flag = false;
@@ -103,22 +97,6 @@ void main(void) {
 
 	finalize_peripherals();
 
-}
-//#########################
-// ======= M A I N ========
-//#########################
-
-/* Sends a test message through UART */
-void test_uart(unsigned char* buffer) {
-	char* UBufferBidali;
-	bool enviar = 0;
-
-	while (!enviar) {
-		adi_uart_IsTxBufferAvailable(h_uart_device, &enviar);
-	}
-	adi_uart_GetTxBuffer(h_uart_device, (void**) &UBufferBidali);
-	memcpy(UBufferBidali, buffer, HAIP_FRAME_MAX_LEN);
-	adi_uart_SubmitTxBuffer(h_uart_device, UBufferBidali, HAIP_FRAME_MAX_LEN);
 }
 
 /* Closes peripherals */
