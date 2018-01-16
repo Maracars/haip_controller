@@ -84,10 +84,8 @@ void mapper(unsigned char* frame_buffer, int frame_length) {
 		else
 			numDecimal = ((frame_buffer[i / 2] & 0xF0) >> 4);
 
-		frame_symbols_real[i + HAIP_PREAMBLE_SYMBOLS] =
-				haip_const[numDecimal][0];
-		frame_symbols_imag[i + HAIP_PREAMBLE_SYMBOLS] =
-				haip_const[numDecimal][1];
+		frame_symbols_real[i + HAIP_PREAMBLE_SYMBOLS] = haip_const[numDecimal][0];
+		frame_symbols_imag[i + HAIP_PREAMBLE_SYMBOLS] = haip_const[numDecimal][1];
 	}
 }
 
@@ -97,10 +95,8 @@ void upsample(int frame_length) {
 
 	for (i = 0; i < oversampled_length; i++) {
 		if (i % HAIP_OVERSAMPLING_FACTOR == 0) {
-			frame_symbols_imag_upsample[i] = frame_symbols_imag[i
-					/ HAIP_OVERSAMPLING_FACTOR];
-			frame_symbols_real_upsample[i] = frame_symbols_real[i
-					/ HAIP_OVERSAMPLING_FACTOR];
+			frame_symbols_imag_upsample[i] = frame_symbols_imag[i / HAIP_OVERSAMPLING_FACTOR];
+			frame_symbols_real_upsample[i] = frame_symbols_real[i / HAIP_OVERSAMPLING_FACTOR];
 		} else {
 			frame_symbols_imag_upsample[i] = 0;
 			frame_symbols_real_upsample[i] = 0;
@@ -127,10 +123,8 @@ void filter(int length) {
 		frame_symbols_imag_upsample[i] = 0;
 	}
 
-	fir_init(state_real, haip_srcos_fir_fil_coeffs_fr32, delay_real,
-			HAIP_SRCOS_COEFF_NUM, 0);
-	fir_init(state_imag, haip_srcos_fir_fil_coeffs_fr32, delay_imag,
-			HAIP_SRCOS_COEFF_NUM, 0);
+	fir_init(state_real, haip_srcos_fir_fil_coeffs_fr32, delay_real, HAIP_SRCOS_COEFF_NUM, 0);
+	fir_init(state_imag, haip_srcos_fir_fil_coeffs_fr32, delay_imag, HAIP_SRCOS_COEFF_NUM, 0);
 
 	//Filters the signal
 	fir_fr32(frame_symbols_real_upsample, filtered_real_symbols,

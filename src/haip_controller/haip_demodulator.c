@@ -57,10 +57,8 @@ void haip_init_demodulator() {
 	complex_fract32 aux;
 
 	for (int i = 0; i < HAIP_PREAMBLE_SYMBOLS; i++) {
-		aux.re = float_to_fr32(
-				preamble_real[HAIP_PREAMBLE_SYMBOLS - i - 1] / 32);
-		aux.im = float_to_fr32(
-				preamble_imag[HAIP_PREAMBLE_SYMBOLS - i - 1] / 32);
+		aux.re = float_to_fr32(preamble_real[HAIP_PREAMBLE_SYMBOLS - i - 1] / 32);
+		aux.im = float_to_fr32(preamble_imag[HAIP_PREAMBLE_SYMBOLS - i - 1] / 32);
 		inv_preamble[i] = conj_fr32(aux);
 	}
 }
@@ -135,11 +133,12 @@ haip_sync_t syncronize_with_preamble(fract32* filtered_analog_complex_data_r, fr
 	double c_actual_value = 0.0;
 	double coors[8];
 	double c_max_value = 0.0;
-
+	//FIR filter is used with the coeffs inverted in order to work as xcorr
 	cfir_init(cfir_state, inv_preamble, delay_fir, HAIP_PREAMBLE_SYMBOLS);
-	for (corr_number = 0; corr_number < HAIP_OVERSAMPLING_FACTOR;
-			corr_number++) {
+	for (corr_number = 0; corr_number < HAIP_OVERSAMPLING_FACTOR; corr_number++) {
 
+		//Take an array of samples for the length of the preamble grouped by their lag within each
+		//symbol period
 		for (j = 0; j < CORRELATION_SAMPLE_LENGTH; j++) {
 			filtered_complex_signal[corr_number][j].im = filtered_analog_complex_data_i[HAIP_SRCOS_FILTER_DELAY + corr_number + j * HAIP_OVERSAMPLING_FACTOR];
 			filtered_complex_signal[corr_number][j].re = filtered_analog_complex_data_r[HAIP_SRCOS_FILTER_DELAY + corr_number + j * HAIP_OVERSAMPLING_FACTOR];
@@ -149,7 +148,7 @@ haip_sync_t syncronize_with_preamble(fract32* filtered_analog_complex_data_r, fr
 
 		i = 0;
 		c_value = 0.0;
-
+		//Take the lag with the highest correlation (abs of both real and imag)
 		for (j = 0; j < CORRELATION_SAMPLE_LENGTH; j++) {
 			c_actual_value = cabs_fr32(correlation[corr_number][j]);
 
@@ -159,17 +158,20 @@ haip_sync_t syncronize_with_preamble(fract32* filtered_analog_complex_data_r, fr
 				i = j;
 			}
 		}
-
+		//Take the maximum from all the samples of the period
 		if (c_max_value <= c_value) {
 			c_max_value = c_value;
+			//This sample has the data (or at least it looks like it)
 			sync.sample = corr_number;
+			//This is not used as first period always contains data in our case
 			sync.start_indx = 0;
-			sync.phase_off = atan2(
-					fr32_to_float(correlation[corr_number][i].im),
-					fr32_to_float(correlation[corr_number][i].re));
+			//Phase of the coor works cause they are lineal in imag and real
+			sync.phase_off = atan2(fr32_to_float(correlation[corr_number][i].im), fr32_to_float(correlation[corr_number][i].re));
 		}
 	}
 
+	//32*sqrt(2) -> coeffs are 1/sqrt(2) in the ideal output and ideal coeffs are 1/32
+	//the formula below is an approximation (0.9 to compensate for 0.75 instead of 1/sqrt(2))
 	sync.att = PERFECT_CORRELATION * 0.9 / (fr32_to_float(c_max_value) * 32 / 0.75);
 
 	return sync;
