@@ -23,6 +23,7 @@
 
 #include "haip_tx_rx.h"
 #include "haip_16QAM_mapping.h"
+#include "haip_data_detector.h"
 
 /* ADI initialization header */
 #include "system/adi_initialize.h"
@@ -85,6 +86,9 @@ void main(void) {
 	bool stop_flag = false;
 
 	bool result = initialize_peripherals();
+
+	//TODO: define the numbers as constants
+	haip_detector_config(0.2,0.4);
 
 	//IF (Success)
 	if (result == 0) {

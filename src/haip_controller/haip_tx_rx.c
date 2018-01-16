@@ -90,6 +90,7 @@ void read_digital_input(void) {
 
 void process_digital_input(unsigned char* buffer, int size) {
 	int length = 0;
+	int last_frame_offset = 0;
 	//check timeout to avoid unwanted bytes
 	if(check_timeout(last_digital_input_t, DIGITAL_INPUT_TIMEOUT, &last_digital_input_t)){
 		reception_on_course = false;
@@ -105,8 +106,13 @@ void process_digital_input(unsigned char* buffer, int size) {
 		length = expected_byte_cnt;
 	}
 
-	//TODO: send_list_offset + frame_count > HAIP_MAX_FRAME
-	memcpy(&(frame_buffer_list[send_list_offset + frame_count][alreadyCopiedOffset]), &(digital_input_buffer[0]), size);
+	if(send_list_offset + frame_count >= HAIP_MAX_FRAMES){
+		last_frame_offset =  (send_list_offset + frame_count) - HAIP_MAX_FRAMES;
+	} else {
+		last_frame_offset =  (send_list_offset + frame_count);
+	}
+
+	memcpy(&(frame_buffer_list[last_frame_offset][alreadyCopiedOffset]), &(digital_input_buffer[0]), size);
 
 	expected_byte_cnt = length - size;
 	alreadyCopiedOffset += size;
@@ -161,9 +167,10 @@ void send_dac(bool do_send) {
 				+ HAIP_SRCOS_COEFF_NUM;
 
 		//modulate
-		fract32 kk = haip_modulate_frame(
-				&(frame_buffer_list[send_list_offset][0]), length,
-				modulated_frame);
+		fract32 kk = haip_modulate_frame(&(frame_buffer_list[send_list_offset][0]), length,	modulated_frame);
+
+		//clear sent frame
+		memset(&(frame_buffer_list[send_list_offset][0]),0,HAIP_FRAME_MAX_LEN);
 
 		//shift the offset of the list of frames to send
 		if (send_list_offset == (HAIP_MAX_FRAMES - 1)) {
