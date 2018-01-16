@@ -82,7 +82,6 @@ void main(void) {
 
 	haip_init_demodulator();
 	haip_init_const();
-
 	fract32 modulated_out[HAIP_FRAME_SAMPLES_W_COEFFS];
 	unsigned char modulated_in[HAIP_FRAME_MAX_LEN];
 	haip_sync_t sync;
@@ -92,10 +91,6 @@ void main(void) {
 	bool stop_flag = false;
 
 	bool result = initialize_peripherals();
-
-	//TODO kendu hau pruebea, oin balio dau ikusteko programea ejekutau dala
-	memcpy(entrada_test, "MIKE", 5);
-	test_uart(entrada_test);
 
 	//IF (Success)
 	if (result == 0) {
