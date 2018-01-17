@@ -20,9 +20,8 @@
 #include <drivers/adc/ad1871/adi_ad1871.h>
 #include <string.h>
 #include <math.h>
-//DEFINITIONS
 
-/* Baud rate to be used for char echo */
+//DEFINITIONS
 #define HAIP_BAUD_RATE                9600u
 
 #define HAIP_UART_BUFFER_SIZE            1
@@ -43,7 +42,6 @@
 
 #define HAIP_MAX_FRAMES 10
 
-/* Add your custom header content here */
 #define HAIP_SAMPLING_FREQ                    48000//Hz
 #define HAIP_CARRIER_FREQ                    6000//Hz
 #define HAIP_SYMBOL_FREQ                    6000//Hz
@@ -58,6 +56,7 @@
 #define HAIP_CODING_RATE                    HAIP_CODING_WORDLEN / HAIP_CODING_DATABITS
 #define HAIP_PREAMBLE_SYMBOLS                8
 #define HAIP_SYMBOLS_PER_BYTE                8/HAIP_BITS_PER_SYMBOL
+
 /* Haip frame structure */
 #define HAIP_FRAME_HEADER_LEN            1
 #define HAIP_FRAME_HEADER_OFF            1
@@ -107,7 +106,5 @@ typedef struct haip_sync_t {
 
 //Function declarations
 bool check_timeout(double last, double limit, double *new_last);
-
-int char_to_dec(char c, int bits_p_symbol);
 
 #endif /* HAIPCOMMONS_H_ */

@@ -15,10 +15,6 @@
 
 /*=============  D E F I N E S  =============*/
 
-/* Enable macro to build example in callback mode */
-//#define ENABLE_CALLBACK
-/* Enable macro to enable application time-out */
-//#define ENABLE_APP_TIME_OUT
 /* Enable macro to display debug information */
 #define ENABLE_DEBUG_INFO
 
@@ -33,9 +29,6 @@
 
 /* SPORT Device number allocated to AD1871 */
 #define AD1871_SPORT_DEV_NUM    (0u)
-
-/* Buffer size */
-#define	BUFFER_SIZE				50
 
 /* Application time out value */
 #define	TIME_OUT_VAL			(0xFFFFFFFu)

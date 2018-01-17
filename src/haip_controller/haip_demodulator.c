@@ -35,6 +35,7 @@ segment ("sdram0") fract32 adj_const[16][2]; //16 QAM constelation inverted so t
 segment ("sdram0") complex_fract32 inv_preamble[HAIP_PREAMBLE_SYMBOLS];
 segment ("sdram0") complex_fract32 delay_fir[HAIP_PREAMBLE_SYMBOLS];
 
+//Filter states
 fir_state_fr32 dem_state_real;
 fir_state_fr32 dem_state_imag;
 
@@ -96,6 +97,7 @@ void get_quadrature_inphase(fract32* analog_data, int buffer_len, fract32* raw_s
 void filter_sqrcosine(fract32* raw_samples_r, fract32* raw_samples_i, int len, fract32* filtered_samples_r, fract32* filtered_samples_i, bool dem_header) {
 
 	int i;
+	int frame_length;
 
 	for (i = 0; i < HAIP_SRCOS_COEFF_NUM; i++) {
 		delay_real[i] = 0;
@@ -106,10 +108,10 @@ void filter_sqrcosine(fract32* raw_samples_r, fract32* raw_samples_i, int len, f
 		filtered_samples_i[i] = 0;
 	}
 
-	/* Paketean tamañue pasau eta hori aldatu 160 gaitik
-	 * If bet ipini aurretik jakiteko headerra edo payload demoduletan gabizen*/
+	/*If it is demodulating the header, init the filters, otherwise, ensure that the limits are cleared*/
 	if (!dem_header) {
-		for (i = len; i < (len + (HAIP_SRCOS_COEFF_NUM * 2)); i++) {
+		frame_length = len + ((HAIP_PREAMBLE_SYMBOLS + HAIP_HEADER_AND_ADDR_LEN) * HAIP_OVERSAMPLING_FACTOR);
+		for (i = frame_length; i < (frame_length + (HAIP_SRCOS_COEFF_NUM * 2)); i++) {
 			raw_samples_r[i] = 0;
 			raw_samples_i[i] = 0;
 		}
@@ -131,11 +133,12 @@ haip_sync_t syncronize_with_preamble(fract32* filtered_analog_complex_data_r, fr
 	double c_actual_value = 0.0;
 	double coors[8];
 	double c_max_value = 0.0;
-
+	//FIR filter is used with the coeffs inverted in order to work as xcorr
 	cfir_init(cfir_state, inv_preamble, delay_fir, HAIP_PREAMBLE_SYMBOLS);
-	for (corr_number = 0; corr_number < HAIP_OVERSAMPLING_FACTOR;
-			corr_number++) {
+	for (corr_number = 0; corr_number < HAIP_OVERSAMPLING_FACTOR; corr_number++) {
 
+		//Take an array of samples for the length of the preamble grouped by their lag within each
+		//symbol period
 		for (j = 0; j < CORRELATION_SAMPLE_LENGTH; j++) {
 			filtered_complex_signal[corr_number][j].im = filtered_analog_complex_data_i[HAIP_SRCOS_FILTER_DELAY + corr_number + j * HAIP_OVERSAMPLING_FACTOR];
 			filtered_complex_signal[corr_number][j].re = filtered_analog_complex_data_r[HAIP_SRCOS_FILTER_DELAY + corr_number + j * HAIP_OVERSAMPLING_FACTOR];
@@ -145,7 +148,7 @@ haip_sync_t syncronize_with_preamble(fract32* filtered_analog_complex_data_r, fr
 
 		i = 0;
 		c_value = 0.0;
-
+		//Take the lag with the highest correlation (abs of both real and imag)
 		for (j = 0; j < CORRELATION_SAMPLE_LENGTH; j++) {
 			c_actual_value = cabs_fr32(correlation[corr_number][j]);
 
@@ -155,17 +158,20 @@ haip_sync_t syncronize_with_preamble(fract32* filtered_analog_complex_data_r, fr
 				i = j;
 			}
 		}
-
+		//Take the maximum from all the samples of the period
 		if (c_max_value <= c_value) {
 			c_max_value = c_value;
+			//This sample has the data (or at least it looks like it)
 			sync.sample = corr_number;
+			//This is not used as first period always contains data in our case
 			sync.start_indx = 0;
-			sync.phase_off = atan2(
-					fr32_to_float(correlation[corr_number][i].im),
-					fr32_to_float(correlation[corr_number][i].re));
+			//Phase of the coor works cause they are lineal in imag and real
+			sync.phase_off = atan2(fr32_to_float(correlation[corr_number][i].im), fr32_to_float(correlation[corr_number][i].re));
 		}
 	}
 
+	//32*sqrt(2) -> coeffs are 1/sqrt(2) in the ideal output and ideal coeffs are 1/32
+	//the formula below is an approximation (0.9 to compensate for 0.75 instead of 1/sqrt(2))
 	sync.att = PERFECT_CORRELATION * 0.9 / (fr32_to_float(c_max_value) * 32 / 0.75);
 
 	return sync;
@@ -195,7 +201,7 @@ void demap_16QAM(complex_fract32* analog_samples, int len, double phase_off, uns
 	for (i = 0; i < len / HAIP_SYMBOLS_PER_BYTE; ++i) {
 		data[i] = 0;
 	}
-	for (; i < len; i++) {
+	for (i = 0; i < len; i++) {
 		mindist = 200; //Big number
 		for (j = 0; j < HAIP_SYMBOLS_16QAM; j++) {
 			dist = calc_dist(adj_const[j], analog_samples[i]);
