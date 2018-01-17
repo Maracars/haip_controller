@@ -56,10 +56,8 @@ void haip_init_demodulator() {
 	complex_fract32 aux;
 
 	for (int i = 0; i < HAIP_PREAMBLE_SYMBOLS; i++) {
-		aux.re = float_to_fr32(
-				preamble_real[HAIP_PREAMBLE_SYMBOLS - i - 1] / 32);
-		aux.im = float_to_fr32(
-				preamble_imag[HAIP_PREAMBLE_SYMBOLS - i - 1] / 32);
+		aux.re = float_to_fr32(preamble_real[HAIP_PREAMBLE_SYMBOLS - i - 1] / 32);
+		aux.im = float_to_fr32(preamble_imag[HAIP_PREAMBLE_SYMBOLS - i - 1] / 32);
 		inv_preamble[i] = conj_fr32(aux);
 	}
 }

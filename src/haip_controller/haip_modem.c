@@ -94,8 +94,10 @@ void main(void) {
 
 	//IF (Success)
 	if (result == 0) {
-		haiptxrx_init_devices(h_uart_device, h_adi_1854_dac_device,
-				h_adi_1871_adc_device);
+		haip_detector_config(2, 1); // Some margin that wont be passed so that a first average of the noise can be estimated
+		haiptxrx_iterate();
+		haip_detector_config(0.08, 0.4);
+		haiptxrx_init_devices(h_uart_device, h_adi_1854_dac_device, h_adi_1871_adc_device);
 		while (!stop_flag) {
 			haiptxrx_iterate();
 		}
